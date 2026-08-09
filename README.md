@@ -589,7 +589,20 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 <img width="1286" height="881" alt="image" src="https://github.com/user-attachments/assets/803b2b47-816b-43f7-87c3-bc9f23b1e395" />
 
- 
+
+**Teste realizado e explicado no vídeo**
+
+sendo o exemplo demonstrado 17,5 - 3,8 = 13,7
+
+Figuras aabaixo:
+
+Adicionando 17,5 (058C no display)
+<img width="437" height="439" alt="image" src="https://github.com/user-attachments/assets/9b6d9a88-30af-4167-a68c-fcbeb178c899" />
+
+Ao adicionar o -3,8 (12F3 que ja é somado ao Apertar Key 1), gerando o resultado (04dC) sendo o 13,7
+
+<img width="433" height="358" alt="image" src="https://github.com/user-attachments/assets/15dff8c0-d404-4811-b45c-59dbc882409c" />
+
 ---
 
 ### Código VHDL Final
@@ -1213,3 +1226,7 @@ Documentadas explicitamente para deixar claro o escopo do formato simplificado:
 * **Núcleo sem pipeline:** todo o caminho (ordenação → alinhamento → soma → contagem de zeros → deslocamento → normalização) é um único caminho combinacional. Aceitável aqui, já que a interação é manual.
 * **Os displays mostram campos, não o valor decimal:** `0FFF` significa `S=0`, `E=F`, `F=FF`, e não o inteiro `0x0FFF`.
 * **Cobertura de testes não é exaustiva:** 8 casos no testbench do núcleo e 9 no testbench de integração, contra 2²⁶ pares possíveis de entradas. Os casos foram escolhidos por cobertura de ramo (os quatro caminhos da normalização) e pelos limites do formato, não por amostragem.
+
+
+## Video
+link aqui, não pode esquecer de botar

@@ -2,7 +2,7 @@
 
 # Tutorial: Implementação de Somador Ponto Flutuante na DE10-Lite
 
-**Autores:** `Angelo Martins Finassi`, `Daniel Kenji Matuo`, `Leandro`
+**Autores:** `Angelo Martins Finassi`, `Daniel Kenji Matuo`, `Leandro Scarpi Granelli`
 **Disciplina:** Sistemas Digitais Q2.20026
 **Data:** `09/08/2026`
 

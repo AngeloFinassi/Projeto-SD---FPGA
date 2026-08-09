@@ -384,7 +384,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 ---
 
-####### **Teste 1: Visão Geral — Núcleo (8 casos)**
+ **Teste 1: Visão Geral — Núcleo (8 casos)**
 
 **Intervalo:** 0 a 800 ns (Zoom Fit)
 
@@ -394,7 +394,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 ---
 
-####### **Teste 1.1: Caso 4 — Normalização Convencional**
+ **Teste 1.1: Caso 4 — Normalização Convencional**
 
 **Intervalo:** 0 a 100 ns
 
@@ -404,7 +404,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 ---
 
-####### **Teste 1.2: Caso 3 — Normalização Parcial**
+ **Teste 1.2: Caso 3 — Normalização Parcial**
 
 **Intervalo:** 100 a 200 ns
 
@@ -414,7 +414,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 ---
 
-####### **Teste 1.3: Caso 3 — `shift_left` Limitado por `big_exp`**
+ **Teste 1.3: Caso 3 — `shift_left` Limitado por `big_exp`**
 
 **Intervalo:** 200 a 300 ns
 
@@ -424,7 +424,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 ---
 
-####### **Teste 1.4: Caso 1 — Cancelamento Exato / Zero Canônico**
+ **Teste 1.4: Caso 1 — Cancelamento Exato / Zero Canônico**
 
 **Intervalo:** 300 a 400 ns
 
@@ -434,7 +434,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 ---
 
-####### **Teste 1.5: Caso 2 — Carry na Soma**
+ **Teste 1.5: Caso 2 — Carry na Soma**
 
 **Intervalo:** 400 a 500 ns
 
@@ -444,7 +444,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 ---
 
-####### **Teste 1.6: Resultado Negativo — Ordenação por Magnitude**
+ **Teste 1.6: Resultado Negativo — Ordenação por Magnitude**
 
 **Intervalo:** 500 a 600 ns
 
@@ -454,7 +454,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 ---
 
-####### **Teste 1.7: Truncamento no Alinhamento (`diff_exp ≥ 8`)**
+ **Teste 1.7: Truncamento no Alinhamento (`diff_exp ≥ 8`)**
 
 **Intervalo:** 600 a 700 ns
 
@@ -462,7 +462,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 <!-- COLE AQUI O PRINT: ondas_core.vcd, 600 a 700 ns -->
 
-####### **Teste 1.8: Overflow do Expoente (limitação)**
+ **Teste 1.8: Overflow do Expoente (limitação)**
 
 **Intervalo:** 700 a 800 ns
 
@@ -475,7 +475,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, botões e displays. O sinal `fase` numera a etapa do protocolo — `1` reset, `2` fração do operando 1, `3` sinal/expoente do operando 1, `4` fração do operando 2, `5` sinal/expoente do operando 2, `6` resultado, `7` preview.
  
-###### **Teste 2: Visão Geral — Protocolo Completo em 9 Casos**
+ **Teste 2: Visão Geral — Protocolo Completo em 9 Casos**
  
 **Intervalo:** 0 a 7950 ns (Zoom Fit)
  
@@ -487,7 +487,7 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 ---
  
-##### **Teste 2.1: Protocolo Completo — Caso T1 (0,25 + 0,25 = 0,5)**
+ **Teste 2.1: Protocolo Completo — Caso T1 (0,25 + 0,25 = 0,5)**
  
 **Intervalo:** 0 a 820 ns
  
@@ -497,7 +497,7 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 ---
  
-##### **Teste 2.2: Protocolo — Caso T2 (0,75 + (−0,5) = 0,25)**
+ **Teste 2.2: Protocolo — Caso T2 (0,75 + (−0,5) = 0,25)**
  
 **Intervalo:** 820 a 1640 ns
  
@@ -507,7 +507,7 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 ---
  
-##### **Teste 2.3: Protocolo — Caso T3 (0,25 não normalizado + 0)**
+ **Teste 2.3: Protocolo — Caso T3 (0,25 não normalizado + 0)**
  
 **Intervalo:** 1640 a 2460 ns
  
@@ -517,7 +517,7 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 ---
  
-##### **Teste 2.4: Protocolo — Caso T4 (1,5 + (−1,5) = 0)**
+ **Teste 2.4: Protocolo — Caso T4 (1,5 + (−1,5) = 0)**
  
 **Intervalo:** 2460 a 3280 ns
  
@@ -527,7 +527,7 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 ---
  
-##### **Teste 2.5: Protocolo — Caso T5 (16320 + 16320 = 32640)**
+ **Teste 2.5: Protocolo — Caso T5 (16320 + 16320 = 32640)**
  
 **Intervalo:** 3280 a 4100 ns
  
@@ -537,7 +537,7 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 ---
  
-##### **Teste 2.6: Protocolo — Caso T6 (1,0 + (−1,5) = −0,5)**
+ **Teste 2.6: Protocolo — Caso T6 (1,0 + (−1,5) = −0,5)**
  
 **Intervalo:** 4100 a 4920 ns
  
@@ -547,7 +547,7 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 ---
  
-##### **Teste 2.7: Protocolo — Caso T7 (32000 + 100 = 32000 — Truncamento)**
+ **Teste 2.7: Protocolo — Caso T7 (32000 + 100 = 32000 — Truncamento)**
  
 **Intervalo:** 4920 a 5740 ns
  
@@ -557,7 +557,7 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 ---
  
-##### **Teste 2.8: Protocolo — Caso T8 (32640 + 32640 — Overflow do Expoente)**
+ **Teste 2.8: Protocolo — Caso T8 (32640 + 32640 — Overflow do Expoente)**
  
 **Intervalo:** 5740 a 6560 ns
  
@@ -567,7 +567,7 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 ---
  
-##### **Teste 2.9: Preview — Demonstração de Operandos Armazenados**
+ **Teste 2.9: Preview — Demonstração de Operandos Armazenados**
  
 **Intervalo:** 6560 a 7950 ns
  
@@ -576,23 +576,6 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
 <img width="1600" height="966" alt="image" src="https://github.com/user-attachments/assets/a3b52c0a-325b-456a-9cfa-8658878c5cc1" />
  
 ---
- 
-## Resumo
- 
-| # | Teste | Intervalo | Operação | Resultado Esperado |
-|---|---|---|---|---|
-| 1 | Visão geral núcleo | 0–800 ns | Todos os 8 casos | — |
-| 2 | Caso 4 | 0–100 ns | 0,25 + 0,25 | 0,5 (`0080`) |
-| 3 | Caso 3a | 100–200 ns | 0,75 + (−0,5) | 0,25 (`0040`) |
-| 4 | Caso 3b | 200–300 ns | 0,00100000×2¹ + 0 | 0,25 (`0040`) |
-| 5 | Caso 1 | 300–400 ns | 1,5 + (−1,5) | 0 (`0000`) |
-| 6 | Caso 2 | 400–500 ns | 16320 + 16320 | 32640 (`0FFF`) |
-| 7 | Negativo | 500–600 ns | 1,0 + (−1,5) | −0,5 (`1080`) |
-| 8 | Truncamento | 600–700 ns | 32000 + 100 | 32000 (`0FFA`) |
-| 9 | Overflow | 700–800 ns | 32640 + 32640 | `00FF` (limitação) |
-| 10 | Visão geral DE10 | 0–7950 ns | Protocolo completo | — |
-| 11–18 | Protocolo T1–T8 | 820 ns/caso | Idem acima | Displays na placa |
-| 19 | Preview | 6560–7950 ns | Demonstração | Operandos armazenados |
 
 ### Código VHDL Final
 

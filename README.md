@@ -2,9 +2,9 @@
 
 # Tutorial: Implementação de Somador Ponto Flutuante na DE10-Lite
 
-**Autores:** `[Nome do Aluno 1]`, `[Nome do Aluno 2]`, `[Nome do Aluno 3]`
+**Autores:** `Angelo Martins Finassi`, `Daniel`, `Leandro`
 **Disciplina:** Sistemas Digitais Q2.20026
-**Data:** `[Data da entrega]`
+**Data:** `09/08/2026`
 
 ---
 
@@ -78,8 +78,6 @@ onde `S` é o bit de sinal, `F` é o valor inteiro sem sinal dos 8 bits de `frac
 | 16320 | 0 | 1110 | 11111111 | 255/256 × 2¹⁴ = 16320 | `0EFF` |
 | 32640 (máximo) | 0 | 1111 | 11111111 | 255/256 × 2¹⁵ = 32640 | `0FFF` |
 | 0,00390625 (mínimo ≠ 0) | 0 | 0000 | 00000001 | 1/256 × 2⁰ | `0001` |
-
-> **Nota de convenção.** Uma parte do material interno do grupo descreve a significância como `Q1.7` (`F/128 × 2^E`, com o ponto binário depois de `frac(7)`). As duas convenções descrevem o *mesmo hardware* — o circuito não conhece a posição do ponto binário — e diferem apenas por um fator 2 na leitura do valor. Este relatório adota `F/256 × 2^E` porque é a convenção usada nos comentários e nos vetores de teste do código final (por exemplo, `0 | 1110 | 11111111` é documentado como 16320 no `tb_fp_adder_de10.vhd`).
 
 ### 2.2 Diagrama de blocos do sistema completo
 
@@ -375,7 +373,10 @@ Além dos casos da tabela anterior, esses testbenches cobrem dois comportamentos
 
 Visão geral dos oito casos do núcleo (`ondas_core.vcd`, 0 a 800 ns):
 
-![Visão geral - núcleo](<img width="1600" height="825" alt="image" src="https://github.com/user-attachments/assets/0ff9791c-ea9c-45a6-924a-a765dd220f92" />)
+**Visão geral - núcleo**
+
+<img width="1600" height="825" alt="image" src="https://github.com/user-attachments/assets/c46409cb-d761-4a4b-b2ff-45e7fc842ba0" />
+
 
 Os quatro casos da normalização, em detalhe:
 
@@ -1172,11 +1173,10 @@ CLAUDE - Mais eficiente, utilizado para analisar o projeto pronto e ajudar no pr
 histórico em md da conversa gerada para o frontend, calculadora para validar os resultados e nos ajudar nos testes da placa esta documentado e disponíveis para download:
 
 
-**Prompts Utilizados:**
+**Prompts Utilizados: Geração da calculadora (index.html, app.js e style.css)**
+onde foram, anexados arquivos do vhdl para contexto do funcionamento
 
-> `Chat Conversation
-Note: This is purely the output of the chat conversation and does not contain any raw data, codebase snippets, etc. used to generate the output.
-User Input
+> `
 quero fazer um frontend de uma pagina pra nos ajudar a testar isso pessoalmente, basicamente front end bonito porem sem framework, sem complicar nada, zero
 precisa ter o seguinte
 dois inputs de numero decimal, usuario coloca os numeros a serem somados

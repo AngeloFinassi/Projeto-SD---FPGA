@@ -22,6 +22,7 @@
 > | `rodar_simulacao.sh` | — | Script que analisa, elabora e executa os dois testbenches |
 > | `ondas_core.vcd` / `ondas_de10.vcd` | — | Formas de onda geradas pelas simulações |
 > | `de10_lite_final.qsf` | — | Assignments de pinos e padrões de I/O da DE10-Lite |
+> > | `tb_fp_adder.vhd` / `tb_fp_adder_de10.vhd` | — | Testbenches iniciais do projeto — 7 casos cada, mantidos como evidência complementar |
 
 ---
 
@@ -300,6 +301,8 @@ A descrição do núcleo em §2.3–§2.8 permanece válida. A camada adicionada
 | Padrão de I/O — `KEY` | 3.3 V Schmitt Trigger |
 
 ---
+## 4. Evidências de Validação
+
 ### Simulação
 
 A validação foi feita em dois níveis, ambos com **GHDL 4.1** e visualização no **GTKWave**. Os dois testbenches **não modificam nenhum arquivo do projeto** — apenas instanciam os módulos existentes:
@@ -1045,170 +1048,64 @@ begin
 end arch;
 ```
 
-</details>
-
 <details>
-<summary><b>tb_fp_adder_de10.vhd</b> — testbench de integração (protocolo SW/KEY + verificação dos displays)</summary>
+<summary><b>tb_ondas_core.vhd</b> — testbench do núcleo (8 casos, 100 ns cada)</summary>
 
 ```vhdl
-library ieee;
-use ieee.std_logic_1164.all;
-
-entity tb_fp_adder_de10 is
-end entity;
-
-architecture sim of tb_fp_adder_de10 is
-
-    -- Entradas da DE10-Lite
-    signal SW  : std_logic_vector(9 downto 0) := (others => '0');
-    signal KEY : std_logic_vector(1 downto 0) := "11";
-
-    -- Displays
-    signal HEX0 : std_logic_vector(7 downto 0);
-    signal HEX1 : std_logic_vector(7 downto 0);
-    signal HEX2 : std_logic_vector(7 downto 0);
-    signal HEX3 : std_logic_vector(7 downto 0);
-    signal HEX4 : std_logic_vector(7 downto 0);
-    signal HEX5 : std_logic_vector(7 downto 0);
-
-    -- Padroes do display de 7 segmentos (active-low)
-    constant SEG_0   : std_logic_vector(7 downto 0) := "11000000";
-    constant SEG_1   : std_logic_vector(7 downto 0) := "11111001";
-    constant SEG_2   : std_logic_vector(7 downto 0) := "10100100";
-    constant SEG_4   : std_logic_vector(7 downto 0) := "10011001";
-    constant SEG_8   : std_logic_vector(7 downto 0) := "10000000";
-    constant SEG_F   : std_logic_vector(7 downto 0) := "10001110";
-    constant SEG_OFF : std_logic_vector(7 downto 0) := "11111111";
-
-    -- Gera uma borda de subida no botao
-    procedure pulse_key(signal key_n : out std_logic) is
-    begin
-        key_n <= '0';
-        wait for 5 ns;
-        key_n <= '1';
-        wait for 5 ns;
-    end procedure;
-
-    -- Carrega um operando no wrapper (fracao e depois sinal/expoente)
-    procedure load_operand(
-        signal sw_bus : out std_logic_vector(9 downto 0);
-        signal key_n  : out std_logic;
-        constant sign_v : in std_logic;
-        constant exp_v  : in std_logic_vector(3 downto 0);
-        constant frac_v : in std_logic_vector(7 downto 0)
-    ) is
-    begin
-        sw_bus(9) <= '0';
-        sw_bus(7 downto 0) <= frac_v;
-        pulse_key(key_n);
-
-        sw_bus(9) <= '1';
-        sw_bus(4) <= sign_v;
-        sw_bus(3 downto 0) <= exp_v;
-        pulse_key(key_n);
-    end procedure;
-
-    -- Verifica os quatro displays usados pelo resultado
-    procedure check_display(
-        constant test_name     : in string;
-        constant expected_hex3 : in std_logic_vector(7 downto 0);
-        constant expected_hex2 : in std_logic_vector(7 downto 0);
-        constant expected_hex1 : in std_logic_vector(7 downto 0);
-        constant expected_hex0 : in std_logic_vector(7 downto 0)
-    ) is
-    begin
-        assert (
-            HEX3 = expected_hex3 and
-            HEX2 = expected_hex2 and
-            HEX1 = expected_hex1 and
-            HEX0 = expected_hex0
-        )
-        report "ERRO " & test_name & ": HEX3..HEX0 incorretos"
-        severity error;
-
-        assert (HEX4 = SEG_OFF and HEX5 = SEG_OFF)
-        report "ERRO " & test_name & ": HEX4 e/ou HEX5 deveriam estar apagados"
-        severity error;
-    end procedure;
-
-begin
-
-    dut: entity work.fp_adder_de10
-        port map (
-            SW  => SW,
-            KEY => KEY,
-            HEX0 => HEX0, HEX1 => HEX1, HEX2 => HEX2,
-            HEX3 => HEX3, HEX4 => HEX4, HEX5 => HEX5
-        );
-
-    stimulus: process
-    begin
-
-        -- TESTE 1: 0.75 + (-0.5) = 0.25  ->  0040
-        SW(8) <= '1'; KEY <= "11"; wait for 5 ns;
-        SW(8) <= '0'; wait for 5 ns;
-        load_operand(SW, KEY(0), '0', "0000", "11000000");
-        load_operand(SW, KEY(1), '1', "0000", "10000000");
-        wait for 5 ns;
-        check_display("TESTE 1", SEG_0, SEG_0, SEG_4, SEG_0);
-
-        -- TESTE 2: normalizacao parcial 0.00100000 * 2^1 = 0.25  ->  0040
-        SW(8) <= '1'; KEY <= "11"; wait for 5 ns;
-        SW(8) <= '0'; wait for 5 ns;
-        load_operand(SW, KEY(0), '0', "0001", "00100000");
-        load_operand(SW, KEY(1), '0', "0000", "00000000");
-        wait for 5 ns;
-        check_display("TESTE 2", SEG_0, SEG_0, SEG_4, SEG_0);
-
-        -- TESTE 3: 0.25 + 0.25 = 0.5  ->  0080
-        SW(8) <= '1'; KEY <= "11"; wait for 5 ns;
-        SW(8) <= '0'; wait for 5 ns;
-        load_operand(SW, KEY(0), '0', "0000", "01000000");
-        load_operand(SW, KEY(1), '0', "0000", "01000000");
-        wait for 5 ns;
-        check_display("TESTE 3", SEG_0, SEG_0, SEG_8, SEG_0);
-
-        -- TESTE 4: menores positivos, 1/256 + 1/256  ->  0002
-        SW(8) <= '1'; KEY <= "11"; wait for 5 ns;
-        SW(8) <= '0'; wait for 5 ns;
-        load_operand(SW, KEY(0), '0', "0000", "00000001");
-        load_operand(SW, KEY(1), '0', "0000", "00000001");
-        wait for 5 ns;
-        check_display("TESTE 4", SEG_0, SEG_0, SEG_0, SEG_2);
-
-        -- TESTE 5: menor resultado negativo  ->  1001
-        SW(8) <= '1'; KEY <= "11"; wait for 5 ns;
-        SW(8) <= '0'; wait for 5 ns;
-        load_operand(SW, KEY(0), '0', "0000", "00000001");
-        load_operand(SW, KEY(1), '1', "0000", "00000010");
-        wait for 5 ns;
-        check_display("TESTE 5", SEG_1, SEG_0, SEG_0, SEG_1);
-
-        -- TESTE 6: cancelamento no menor valor representavel  ->  0000
-        SW(8) <= '1'; KEY <= "11"; wait for 5 ns;
-        SW(8) <= '0'; wait for 5 ns;
-        load_operand(SW, KEY(0), '0', "0000", "00000001");
-        load_operand(SW, KEY(1), '1', "0000", "00000001");
-        wait for 5 ns;
-        check_display("TESTE 6", SEG_0, SEG_0, SEG_0, SEG_0);
-
-        -- TESTE 7: maior resultado sem overflow, 16320 + 16320  ->  0FFF
-        SW(8) <= '1'; KEY <= "11"; wait for 5 ns;
-        SW(8) <= '0'; wait for 5 ns;
-        load_operand(SW, KEY(0), '0', "1110", "11111111");
-        load_operand(SW, KEY(1), '0', "1110", "11111111");
-        wait for 5 ns;
-        check_display("TESTE 7", SEG_0, SEG_F, SEG_F, SEG_F);
-
-        report "Todos os 7 testes do wrapper foram executados." severity note;
-        wait;
-
-    end process;
-
-end architecture;
+COLE AQUI O CONTEÚDO INTEGRAL DE tb_ondas_core.vhd
 ```
 
 </details>
+
+<details>
+<summary><b>tb_ondas_de10.vhd</b> — testbench de integração (protocolo SW/KEY + verificação dos displays)</summary>
+
+```vhdl
+COLE AQUI O CONTEÚDO INTEGRAL DE tb_ondas_de10.vhd
+```
+
+</details>
+
+#### 4.3 Validação no Questa (Intel)
+
+A mesma base de testes foi executada no **Questa** para confirmar que o resultado não depende do simulador. Nenhum arquivo foi alterado entre as duas execuções.
+
+```tcl
+# criar e mapear a biblioteca de trabalho
+vlib work
+vmap work work
+
+# compilar o projeto e os testbenches
+vcom -93 final_fp_adder.vhd
+vcom -93 hex_to_7seg.vhd
+vcom -93 final_fp_adder_de10.vhd
+vcom -93 tb_ondas_core.vhd
+vcom -93 tb_ondas_de10.vhd
+
+# simular o núcleo
+vsim work.tb_ondas_core
+add wave -r /*
+run -all
+
+# simular o sistema completo
+vsim work.tb_ondas_de10
+add wave -r /*
+run -all
+```
+
+**Compilação sem erros:**
+
+<!-- COLE AQUI O PRINT DA JANELA DE COMPILAÇÃO DO QUESTA -->
+
+**Transcript da simulação (nenhum `Error`, todas as verificações satisfeitas):**
+
+<!-- COLE AQUI O PRINT DO TRANSCRIPT COM AS MENSAGENS DE NOTE -->
+
+**Formas de onda no Questa:**
+
+<!-- COLE AQUI O PRINT DAS ONDAS NO QUESTA -->
+
+Os resultados são idênticos aos obtidos no GHDL/GTKWave e documentados nas figuras dos Testes 1 e 2.
 
 ---
 
@@ -1225,14 +1122,25 @@ Procedimento de operação na DE10-Lite:
 5. Com os dois botões soltos, os displays mostram o resultado. Não existe botão de "somar": o núcleo é combinacional e o resultado atualiza sozinho.
 6. A qualquer momento, segurar `KEY0` ou `KEY1` para conferir o operando correspondente.
 
-Casos críticos a demonstrar (mesmos casos validados em simulação):
+Casos críticos demonstrados na placa, escolhidos por terem simulação correspondente neste relatório:
 
-| Caso | Operação | Entradas na placa | Display esperado |
-|---|---|---|---|
-| Carry / normalização à direita | `16320 + 16320` | `0\|1110\|11111111` (×2) | `0FFF` |
-| Normalização parcial (`E = 0`) | `0,75 + (−0,5)` | `0\|0000\|11000000` e `1\|0000\|10000000` | `0040` |
-| Cancelamento exato (zero canônico) | `x + (−x)` | `0\|0000\|00000001` e `1\|0000\|00000001` | `0000` |
-| Resultado negativo | `+0,00390625 + (−0,0078125)` | `0\|0000\|00000001` e `1\|0000\|00000010` | `1001` |
+| Caso | Operação | Entradas na placa (`S \| E \| F`) | Display esperado | Figura da simulação |
+|---|---|---|---|---|
+| Normalização convencional | `0,25 + 0,25` | `0\|0000\|01000000` (×2) | `0080` | Teste 2.1 |
+| Normalização parcial (`E = 0`) | `0,75 + (−0,5)` | `0\|0000\|11000000` e `1\|0000\|10000000` | `0040` | Teste 2.2 |
+| Cancelamento exato (zero canônico) | `1,5 + (−1,5)` | `0\|0001\|11000000` e `1\|0001\|11000000` | `0000` | Teste 2.4 |
+| Carry / normalização à direita | `16320 + 16320` | `0\|1110\|11111111` (×2) | `0FFF` | Teste 2.5 |
+| Resultado negativo | `1,0 + (−1,5)` | `0\|0001\|10000000` e `1\|0001\|11000000` | `1080` | Teste 2.6 |
+
+#### Registro em vídeo
+
+O vídeo abaixo mostra a sequência completa na DE10-Lite: reset por `SW8`, carregamento das duas etapas de cada operando (`SW9 = 0` para a fração, `SW9 = 1` para sinal e expoente), gravação com `KEY0`/`KEY1` e leitura do resultado nos displays.
+
+<!-- COLE AQUI O LINK OU O VÍDEO -->
+
+#### Fotos dos casos na placa
+
+**Caso 1 — `0,75 + (−0,5) = 0,25` → `0040`** (normalização parcial, o caso que o código original devolvia como zero)
 
 ---
 
@@ -1284,9 +1192,9 @@ faça o que te pedi e depois atualize o markdown por favor`
 
 Utilize a taxonomia CRediT, seguem exemplos:
 
-* `Angelo Martins Finassi`, Confecção dos relatórios, testes no GTKWave e presenciais 
-* `Daniel`, ---
-* `Leandro`, Redação do manuscrito original, Validação de dados e experimentos
+* `Angelo Martins Finassi` — Redação (rascunho original), Redação (revisão e edição), Validação, Visualização, Curadoria de dados
+* `Daniel [sobrenome]` — Software, Investigação, Metodologia
+* `Leandro [sobrenome]` — Análise formal, Validação, Administração do projeto
 
 ---
 

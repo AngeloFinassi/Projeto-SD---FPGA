@@ -1134,8 +1134,6 @@ end architecture;
 
 </details>
 
-`[PENDENTE: inserir o conteúdo de tb_fp_adder.vhd — o testbench do núcleo]`
-
 ---
 
 *Etapa 3*
@@ -1175,6 +1173,8 @@ CLAUDE - Mais eficiente, utilizado para analisar o projeto pronto e ajudar no pr
 histórico em md da conversa gerada para o frontend, calculadora para validar os resultados e nos ajudar nos testes da placa esta documentado e disponíveis para download:
 
 
+GEMINI - gefração da nossa calculadora para ajudar nos testes presencialmente, conforme promp abaixo:
+
 **Prompts Utilizados: Geração da calculadora (index.html, app.js e style.css)**
 onde foram, anexados arquivos do vhdl para contexto do funcionamento
 
@@ -1189,12 +1189,6 @@ e oque deve aparecer apos apertar key1 (resultado da soma)
 o arquivo context.MD tem um resumo do que é o projeto, mas isso é um pouco antigo, o codigo foi alterado, o codigo final ta na pasta final, a mudanca que foi feita foi passar a usar 8 bits para fracao e nao 4
 faça o que te pedi e depois atualize o markdown por favor`
 
-**O Erro da IA (Alucinação):**
-
-> `[PENDENTE: descrever os erros observados]`
-
-
-**A Correção Humana:**
 
 ---
 
@@ -1205,8 +1199,6 @@ Utilize a taxonomia CRediT, seguem exemplos:
 * `Angelo Martins Finassi`, Confecção dos relatórios, testes no GTKWave e presenciais 
 * `Daniel`, ---
 * `Leandro`, Redação do manuscrito original, Validação de dados e experimentos
-
-`[PENDENTE: substituir pelos nomes reais e pelas contribuições efetivas de cada integrante]`
 
 ---
 

@@ -269,25 +269,6 @@ A descrição do núcleo em §2.3–§2.8 permanece válida. A camada adicionada
 
 > Os botões da DE10-Lite são **ativos em nível baixo** (`1` = solto, `0` = pressionado). Como o código usa `rising_edge(KEY(n))`, a gravação acontece **na liberação** do botão.
 
-**Protocolo de carregamento (sequência do usuário):**
-
-```mermaid
-sequenceDiagram
-    participant U as Usuário
-    participant W as fp_adder_de10
-    participant D as HEX3..HEX0
-    U->>W: SW8 = 1 (reset) e depois SW8 = 0
-    D-->>U: 0000
-    U->>W: SW9 = 0, SW7..SW0 = frac1
-    U->>W: pressiona e solta KEY0
-    W->>W: frac1 <= SW(7 downto 0)
-    U->>W: SW9 = 1, SW4 = sign1, SW3..SW0 = exp1
-    U->>W: pressiona e solta KEY0
-    W->>W: sign1 <= SW(4); exp1 <= SW(3 downto 0)
-    U->>W: repete os dois passos com KEY1 (operando 2)
-    W->>D: resultado combinacional (sem botão de "somar")
-```
-
 **Cadeia de prioridade da exibição:**
 
 | Prioridade | Condição | O que aparece em `HEX3..HEX0` |
@@ -316,10 +297,6 @@ sequenceDiagram
 | `SW9` | `PIN_F15` |
 | Padrão de I/O — `SW`, `HEX` | 3.3-V LVTTL |
 | Padrão de I/O — `KEY` | 3.3 V Schmitt Trigger |
-
-> **Armadilha encontrada:** ao importar o QSF genérico da DE10-Lite, o `TOP_LEVEL_ENTITY` vinha como `DE10_LITE`. Enquanto o top-level não foi corrigido para `fp_adder_de10`, as atribuições de pinos eram descartadas pelo Quartus.
->
-> `[PENDENTE: colar a tabela completa de pinos de SW0..SW9 e HEX0..HEX5 a partir do de10_lite_final.qsf]`
 
 ---
 
@@ -376,10 +353,6 @@ Os quatro casos do 4º estágio pedidos na Etapa 1, detalhados:
 * **Caso 3 — normalização parcial (Testes 1, 2, 4 e 5):** `leado > big_exp`. No Teste 2, `frac_sum = 0_00100000` com `leado = 2` e `big_exp = 1`: como só há uma unidade de expoente disponível, o circuito desloca **uma** casa (`shift_left(..., 1) = 01000000`) e para com `E = 0`. O valor 0,25 é preservado, ainda que a significância não fique normalizada.
 * **Caso 4 — normalização convencional (Teste 3):** `frac_sum = 0_10000000`, `leado = 0`, `big_exp = 0`; como `leado` não é maior que `big_exp`, aplica-se `normal_exp = big_exp − leado` e `normal_frac = normal_sum`, devolvendo a forma `0.1xxxxxxx`.
 
-Os dois testbenches chegaram às mensagens finais (`Todos os 7 testes foram executados.` e `Todos os 7 testes do wrapper foram executados.`) **sem nenhum `assertion error`**.
-
-> Durante o instante `0 ms` o GHDL emite *warnings* de `metavalue` da `numeric_std`, decorrentes da inicialização dos sinais internos antes de os processos combinacionais estabilizarem. Eles não correspondem a falhas dos `assert`.
-
 #### Testbenches de visualização das formas de onda
 
 Para produzir formas de onda legíveis do 4º estágio, foram escritos dois testbenches adicionais que **não alteram nenhum arquivo do projeto** — apenas instanciam os módulos existentes:
@@ -398,25 +371,11 @@ Além dos casos da tabela anterior, esses testbenches cobrem dois comportamentos
 | T7 | `32000 + 100` | `0FFA` (= 32000) | `diff_exp = 15 − 7 = 8` → `align_frac = "00000000"`: o menor operando é descartado no alinhamento. Coerente com a resolução do formato, que em `E = 15` é de 128 |
 | T8 | `32640 + 32640` | `00FF` (= 0,996) | **Overflow do expoente:** `big_exp = 1111` e `+1` faz wrap para `0000`. Limitação documentada, sem saturação nem flag |
 
-Ambos os testbenches executam com todos os `assert` satisfeitos:
-
-```text
-OK      -> T1  0,25 + 0,25 = 0,5   [normalizacao convencional]
-OK      -> T2  0,75 + (-0,5) = 0,25   [normalizacao parcial]
-OK      -> T3  0,25 (nao normalizado) + 0   [shift_left por big_exp]
-OK      -> T4  1,5 + (-1,5) = 0   [cancelamento, zero canonico]
-OK      -> T5  16320 + 16320 = 32640   [carry, exp+1]
-OK      -> T6  1,0 + (-1,5) = -0,5   [sinal do maior operando]
-OK      -> T7  32000 + 100 = 32000   [truncamento, diff_exp >= 8]
-OK      -> T8  32640 + 32640   [LIMITACAO: overflow do expoente]
-=== tb_ondas_core: 8 casos executados ===
-```
-
 **Formas de onda:**
 
 Visão geral dos oito casos do núcleo (`ondas_core.vcd`, 0 a 800 ns):
 
-![Visão geral - núcleo](link-da-imagem-aqui.jpg)
+![Visão geral - núcleo](<img width="1600" height="825" alt="image" src="https://github.com/user-attachments/assets/0ff9791c-ea9c-45a6-924a-a765dd220f92" />)
 
 Os quatro casos da normalização, em detalhe:
 
@@ -1081,22 +1040,20 @@ Casos críticos a demonstrar (mesmos casos validados em simulação):
 | Cancelamento exato (zero canônico) | `x + (−x)` | `0\|0000\|00000001` e `1\|0000\|00000001` | `0000` |
 | Resultado negativo | `+0,00390625 + (−0,0078125)` | `0\|0000\|00000001` e `1\|0000\|00000010` | `1001` |
 
-`[PENDENTE: inserir as 4 fotos da placa, uma por caso da tabela acima]`
-
-```
-![Caso 1 - carry](foto-caso1.jpg)
-![Caso 2 - normalização parcial](foto-caso2.jpg)
-![Caso 3 - cancelamento](foto-caso3.jpg)
-![Caso 4 - resultado negativo](foto-caso4.jpg)
-```
-
 ---
 
-*Etapa 4 (considerando que a Etapa 4 considera toda a documentação em si)*
+*Etapa 4*
 
 ## 5. Diário de Bordo de IA
 
-Utilizamos o `[ChatGPT/Claude/Gemini]` para auxiliar na geração do Testbench e na refatoração do código. Abaixo está a análise crítica do uso da ferramenta.
+Utilizamos o `[ChatGPT/Claude/Gemini]` para auxiliar na geração do Testbench e na refatoração do código. Abaixo está a análise do uso da ferramenta.
+
+GPT - Utilizado para tirar dúvidas gerais do projetos, com exemplos do que deveriamos alterar no vhdl, todo exemplos falharam, IA não conseguiu gerar o código assim como as outras, sempre exisitam erros e bugs especifícos que demandavam altear maior parte do código, sendoa IA para vhdl não tão efiicente para projetos que demandam maior complexidade, mesmo com descrição do projeto e arquivos anexados, não gerou um resultado interessante.
+
+CLAUDE - Mais eficiente, utilizado para analisar o projeto pronto e ajudar no preenchimento do relatório, tanto na formatação do .md, mas tbm ajudar com a confeção de testes para enriquecimento do mesmo.
+
+histórico em md da conversa gerada para o frontend, calculadora para validar os resultados e nos ajudar nos testes da placa esta documentado e disponíveis para download:
+* 📄 [Visualizar / Baixar arquivo Frontend.md](Frontend.md)
 
 **Prompts Utilizados:**
 
@@ -1105,27 +1062,9 @@ Utilizamos o `[ChatGPT/Claude/Gemini]` para auxiliar na geração do Testbench e
 **O Erro da IA (Alucinação):**
 
 > `[PENDENTE: descrever os erros observados]`
->
-> Erros/inconsistências que já estão documentados nos materiais do grupo e podem ser usados aqui, se confirmados como originados da IA:
->
-> 1. **Inconsistência na convenção de conversão.** Um dos documentos de apoio gerados descreve a significância como `Q1.7` (`valor = F/128 × 2^E`, com bit de normalização explícito antes do ponto binário), enquanto os testbenches e o restante da documentação usam `0.FFFFFFFF₂` (`valor = F/256 × 2^E`). As duas leituras diferem por um fator 2 e, se misturadas, levam a converter errado qualquer número decimal para os switches.
-> 2. **Documentação descrevendo uma versão do circuito que não é a final.** O mesmo material descreve o ramo `leado > big_exp` como *flush-to-zero* (`normal_frac <= (others => '0')`), que é o comportamento do código **original/intermediário**. O código final usa `shift_left(frac_sum(7 downto 0), to_integer(big_exp))` e **preserva** os valores abaixo de 0,5.
-> 3. **Comentários desatualizados no próprio VHDL.** O comentário do ramo `else` da normalização dizia que o caso era "pequeno demais e seria zerado", quando esse ramo executa a normalização convencional; e os comentários do Teste 5 ainda afirmavam que o resultado poderia ser `1000`, quando o núcleo corrigido produz `0000`.
+
 
 **A Correção Humana:**
-
-> `[PENDENTE: descrever a correção com as palavras do grupo]`
->
-> Correções que efetivamente foram aplicadas e podem ser descritas aqui:
->
-> 1. **Validação cruzada documento × código.** Cada afirmação da documentação foi conferida contra o VHDL que realmente está no projeto. Adotou-se a convenção `F/256 × 2^E` por ser a usada pelas asserções dos testbenches (ex.: `0 | 1110 | 11111111` documentado como 16320).
-> 2. **Reescrita do 4º estágio.** O ramo de underflow foi trocado de "zerar o resultado" para "deslocar apenas `big_exp` posições e parar em `E = 0`", o que fez `0,75 + (−0,5)` passar a devolver `0,25` em vez de `0`.
-> 3. **Zero canônico.** Adicionamos a condição `frac_sum = "000000000"` antes do teste de carry e a saída `sign_out <= '0' when normal_frac = "00000000" else big_sign`, eliminando o `−0` e o expoente residual em cancelamentos com expoente alto.
-> 4. **Testbench sem clock.** Como o núcleo é combinacional, os testbenches não geram clock: aplicam os operandos, aguardam e verificam com `assert`. No testbench de integração, os "pulsos" existentes **não** são clock — são as bordas de `KEY`, que no wrapper funcionam como evento de gravação.
-> 5. **Correção do projeto Quartus.** O `TOP_LEVEL_ENTITY` importado do QSF genérico (`DE10_LITE`) foi trocado por `fp_adder_de10`; enquanto isso não foi feito, os assignments de pinos eram descartados.
-> 6. **Padrões de I/O.** `SW` e `HEX` em 3.3-V LVTTL, `KEY` em 3.3 V Schmitt Trigger, conforme o manual da DE10-Lite.
-
-`[PENDENTE: informar qual ferramenta de IA foi usada, e anexar o PDF/log da conversa, se tiver sido uma única conversa]`
 
 ---
 
@@ -1133,9 +1072,9 @@ Utilizamos o `[ChatGPT/Claude/Gemini]` para auxiliar na geração do Testbench e
 
 Utilize a taxonomia CRediT, seguem exemplos:
 
-* `[Nome do Aluno 1]`, Administração do Projeto, Desenvolvimento, implementação e teste de software, Análise Formal
-* `[Nome do Aluno 2]`, Validação de dados e experimentos
-* `[Nome do Aluno 3]`, Redação do manuscrito original, Validação de dados e experimentos
+* `Angelo Martins Finassi`, Confecção dos relatórios, testes no GTKWave e presenciais 
+* `Daniel`, ---
+* `Leandro`, Redação do manuscrito original, Validação de dados e experimentos
 
 `[PENDENTE: substituir pelos nomes reais e pelas contribuições efetivas de cada integrante]`
 

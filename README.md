@@ -1150,7 +1150,7 @@ Casos críticos demonstrados na placa, escolhidos por terem simulação correspo
 
 O vídeo abaixo mostra a sequência completa na DE10-Lite: reset por `SW8`, carregamento das duas etapas de cada operando (`SW9 = 0` para a fração, `SW9 = 1` para sinal e expoente), gravação com `KEY0`/`KEY1` e leitura do resultado nos displays.
 
-<!-- COLE AQUI O LINK OU O VÍDEO -->
+https://youtu.be/jicGraFZuXQ
 
 #### Fotos dos casos na placa
 
@@ -1230,6 +1230,6 @@ Documentadas explicitamente para deixar claro o escopo do formato simplificado:
 
 
 ## Video
-Link do Vídeo
+https://youtu.be/jicGraFZuXQ
 https://youtu.be/jicGraFZuXQ
 

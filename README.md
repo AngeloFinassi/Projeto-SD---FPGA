@@ -594,14 +594,22 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
 
 sendo o exemplo demonstrado 17,5 - 3,8 = 13,7
 
-Figuras aabaixo:
+Figuras abaixo:
 
 Adicionando 17,5 (058C no display)
+
+
 <img width="437" height="439" alt="image" src="https://github.com/user-attachments/assets/9b6d9a88-30af-4167-a68c-fcbeb178c899" />
+
+
 
 Ao adicionar o -3,8 (12F3 que ja é somado ao Apertar Key 1), gerando o resultado (04dC) sendo o 13,7
 
+
+
 <img width="433" height="358" alt="image" src="https://github.com/user-attachments/assets/15dff8c0-d404-4811-b45c-59dbc882409c" />
+
+
 
 vídeo em questão: https://youtu.be/jicGraFZuXQ
 ---

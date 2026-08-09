@@ -399,8 +399,10 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
 **Intervalo:** 0 a 7950 ns (Zoom Fit)
  
 **O que testa:** Sequência completa do protocolo DE10-Lite (chaves, botões, displays) em todos os 9 casos, mostrando `SW8/SW9`, `KEY0/KEY1`, `fase`, e os displays hexadecimais `HEX3..HEX0` em tempo real.
- 
-![Visão geral do protocolo DE10-Lite](<img width="1600" height="924" alt="image" src="https://github.com/user-attachments/assets/a12e7e7e-1e30-4c36-8e36-480118446104" />)
+
+**Visão geral do protocolo DE10-Lite** 
+
+<img width="1600" height="924" alt="image" src="https://github.com/user-attachments/assets/a12e7e7e-1e30-4c36-8e36-480118446104" />
  
 ---
  
@@ -410,7 +412,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 **O que testa:** Ciclo completo de entrada: reset → fração operando 1 → sinal/expoente operando 1 → fração operando 2 → sinal/expoente operando 2 → resultado nos displays. Resultado: `0080` (0,5).
  
-![Protocolo completo T1](<img width="1404" height="948" alt="image" src="https://github.com/user-attachments/assets/ab25c284-ec29-4b73-95fb-d9bcdde48210" />)
+<img width="1404" height="948" alt="image" src="https://github.com/user-attachments/assets/ab25c284-ec29-4b73-95fb-d9bcdde48210" />
  
 ---
  
@@ -420,7 +422,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 **O que testa:** Normalização parcial através do protocolo de chaves. Displays mostram `0040` (0,25).
  
-![Protocolo T2 — normalização parcial](<img width="1419" height="944" alt="image" src="https://github.com/user-attachments/assets/07e85081-62a9-4281-815f-c29560a3ace1" />)
+<img width="1419" height="944" alt="image" src="https://github.com/user-attachments/assets/07e85081-62a9-4281-815f-c29560a3ace1" />
  
 ---
  
@@ -430,7 +432,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 **O que testa:** `shift_left` limitado por `big_exp`. Displays mostram `0040` (0,25).
  
-![Protocolo T3 — shift_left limitado](<img width="1600" height="956" alt="image" src="https://github.com/user-attachments/assets/7c761f45-1282-4287-9558-2d269d270168" />)
+<img width="1600" height="956" alt="image" src="https://github.com/user-attachments/assets/7c761f45-1282-4287-9558-2d269d270168" />
  
 ---
  
@@ -440,7 +442,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 **O que testa:** Cancelamento exato e zero canônico. Displays mostram `0000`.
  
-![Protocolo T4 — cancelamento, zero canônico](<img width="1600" height="963" alt="image" src="https://github.com/user-attachments/assets/0e8b0572-f999-4377-aac2-fde5680ff17f" />)
+<img width="1600" height="963" alt="image" src="https://github.com/user-attachments/assets/0e8b0572-f999-4377-aac2-fde5680ff17f" />
  
 ---
  
@@ -450,7 +452,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 **O que testa:** Carry na soma. Displays mostram `0FFF` (32640).
  
-![Protocolo T5 — carry, exp+1](<img width="1600" height="966" alt="image" src="https://github.com/user-attachments/assets/a8c0ab02-537b-4bb0-8e76-6569e6b71e90" />)
+<img width="1600" height="966" alt="image" src="https://github.com/user-attachments/assets/a8c0ab02-537b-4bb0-8e76-6569e6b71e90" />
  
 ---
  
@@ -460,7 +462,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 **O que testa:** Resultado negativo. O primeiro dígito hexadecimal (`HEX3`) mostra `1` (sinal negativo). Displays mostram `1080`.
  
-![Protocolo T6 — resultado negativo](<img width="1600" height="970" alt="image" src="https://github.com/user-attachments/assets/58b4b3c2-af91-47be-b01d-2f2ab5bfb4a5" />)
+<img width="1600" height="970" alt="image" src="https://github.com/user-attachments/assets/58b4b3c2-af91-47be-b01d-2f2ab5bfb4a5" />
  
 ---
  
@@ -470,7 +472,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 **O que testa:** Limitação: `diff_exp = 8` causa descarte completo do menor operando. Displays mostram `0FFA` (32000). Este é o caso observado na demonstração presencial.
  
-![Protocolo T7 — truncamento, diff_exp ≥ 8](<img width="1600" height="965" alt="image" src="https://github.com/user-attachments/assets/f14dc06a-24ab-4587-b956-48efa25946ee" />)
+<img width="1600" height="965" alt="image" src="https://github.com/user-attachments/assets/f14dc06a-24ab-4587-b956-48efa25946ee" />
  
 ---
  
@@ -480,7 +482,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 **O que testa:** Limitação documentada: overflow do expoente sem tratamento. Displays mostram `00FF` (resultado incorreto, devido ao wrap-around de `exp 1111 + 1 = 0000`).
  
-![Protocolo T8 — overflow do expoente](<img width="1600" height="969" alt="image" src="https://github.com/user-attachments/assets/ed76b0fc-8ccc-4f77-80ed-36cc436f07f4" />)
+<img width="1600" height="969" alt="image" src="https://github.com/user-attachments/assets/ed76b0fc-8ccc-4f77-80ed-36cc436f07f4" />
  
 ---
  
@@ -490,7 +492,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 **O que testa:** Funcionalidade de preview: enquanto `KEY0` é pressionado, o display mostra o operando 1 armazenado; enquanto `KEY1` é pressionado, mostra o operando 2; com ambos soltos, mostra o resultado. Cargas: operando 1 = 1,5 (`01C0`), operando 2 = 0,5 (`0080`), resultado = 2,0 (`0280`).
  
-![Preview — KEY0 = operando 1](<img width="1600" height="966" alt="image" src="https://github.com/user-attachments/assets/a3b52c0a-325b-456a-9cfa-8658878c5cc1" />)
+<img width="1600" height="966" alt="image" src="https://github.com/user-attachments/assets/a3b52c0a-325b-456a-9cfa-8658878c5cc1" />
  
 ---
  

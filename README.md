@@ -1807,15 +1807,8 @@ GEMINI - gefração da nossa calculadora para ajudar nos testes presencialmente,
 onde foram, anexados arquivos do vhdl para contexto do funcionamento
 
 `
-quero fazer um frontend de uma pagina pra nos ajudar a testar isso pessoalmente, basicamente front end bonito porem sem framework, sem complicar nada, zero
-precisa ter o seguinte
-dois inputs de numero decimal, usuario coloca os numeros a serem somados
-e é apresentado as instrucoes pra colocar o numero 1 na placa (SW9 até SW0)
-o que deve aparecer nos displays depois de apertar key0
-as instrucoes para colocar o numero 2
-e oque deve aparecer apos apertar key1 (resultado da soma)
-o arquivo context.MD tem um resumo do que é o projeto, mas isso é um pouco antigo, o codigo foi alterado, o codigo final ta na pasta final, a mudanca que foi feita foi passar a usar 8 bits para fracao e nao 4
-faça o que te pedi e depois atualize o markdown por favor`
+ quero fazer um frontend de uma pagina pra nos ajudar a testar isso pessoalmente, basicamente front end bonito porem sem framework, sem complicar nada, zero precisa ter o seguinte dois inputs de numero decimal, usuario coloca os numeros a serem somados e é apresentado as instrucoes pra colocar o numero 1 na placa (SW9 até SW0) o que deve aparecer nos displays depois de apertar key0 as instrucoes para colocar o numero 2 e oque deve aparecer apos apertar key1 (resultado da soma)
+ `
 
 
 **O Erro da IA (Alucinação):**

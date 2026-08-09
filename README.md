@@ -1691,6 +1691,7 @@ end architecture;
 ```
 
 </details>
+</details>
 
 #### 4.3 Validação no Questa (Intel)
 

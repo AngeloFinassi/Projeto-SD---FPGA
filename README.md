@@ -15,10 +15,13 @@
 > | `final_fp_adder.vhd` | `fp_adder_v2` | Núcleo aritmético combinacional (soma em ponto flutuante) |
 > | `hex_to_7seg.vhd` | `hex_to_7seg` | Decodificador de nibble para display de 7 segmentos |
 > | `final_fp_adder_de10.vhd` | `fp_adder_de10` | Wrapper / top-level da DE10-Lite (SW, KEY, HEX) |
-> | `tb_fp_adder.vhd` | `tb_fp_adder` | Testbench do núcleo |
-> | `tb_fp_adder_de10.vhd` | `tb_fp_adder_de10` | Testbench de integração (protocolo SW/KEY + displays) |
+> | `tb_ondas_core.vhd` | `tb_ondas_core` | Testbench do núcleo — 8 casos, 100 ns cada |
+> | `tb_ondas_de10.vhd` | `tb_ondas_de10` | Testbench de integração — 9 casos pelo protocolo SW/KEY |
+> | `ondas_core.gtkw` | — | Configuração do GTKWave (sinais do núcleo agrupados por etapa) |
+> | `ondas_de10.gtkw` | — | Configuração do GTKWave (chaves, botões e displays) |
+> | `rodar_simulacao.sh` | — | Script que analisa, elabora e executa os dois testbenches |
+> | `ondas_core.vcd` / `ondas_de10.vcd` | — | Formas de onda geradas pelas simulações |
 > | `de10_lite_final.qsf` | — | Assignments de pinos e padrões de I/O da DE10-Lite |
-> | `adder_wave.vcd` / `wave.vcd` | — | Formas de onda das simulações (núcleo / wrapper) |
 
 ---
 
@@ -297,15 +300,18 @@ A descrição do núcleo em §2.3–§2.8 permanece válida. A camada adicionada
 | Padrão de I/O — `KEY` | 3.3 V Schmitt Trigger |
 
 ---
-
-## 4. Evidências de Validação
-
 ### Simulação
 
-A validação foi feita em dois níveis, ambos com **GHDL** e visualização no **GTKWave**:
+A validação foi feita em dois níveis, ambos com **GHDL 4.1** e visualização no **GTKWave**. Os dois testbenches **não modificam nenhum arquivo do projeto** — apenas instanciam os módulos existentes:
 
-1. `tb_fp_adder.vhd` — estimula o núcleo `fp_adder_v2` diretamente (sem switches/botões/displays); forma de onda em `adder_wave.vcd`;
-2. `tb_fp_adder_de10.vhd` — estimula o sistema completo **apenas** por `SW` e `KEY` e verifica os padrões de segmentos; forma de onda em `wave.vcd`.
+| Arquivo | Alvo | Casos | Duração |
+|---|---|---|---|
+| `tb_ondas_core.vhd` | `fp_adder_v2` diretamente | 8 | 100 ns por caso, 800 ns total |
+| `tb_ondas_de10.vhd` | `fp_adder_de10` via `SW`/`KEY` | 9 | 820 ns por caso, 7950 ns total |
+
+O primeiro estimula o núcleo sem interface física, expondo os sinais internos das quatro etapas (`diff_exp`, `align_frac`, `frac_sum`, `leado`, `normal_exp`, `normal_frac`). O segundo reproduz exatamente o procedimento manual usado na placa — reset por `SW8`, fração com `SW9 = 0`, sinal/expoente com `SW9 = 1`, gravação na borda de subida de `KEY0`/`KEY1` — e decodifica os segmentos de volta para dígitos (`disp3..disp0`), de modo que a onda mostra diretamente `0 0 4 0` em vez de padrões de oito bits. Um sinal `fase` indica em que etapa do protocolo a simulação está.
+
+Todas as verificações são feitas em VHDL, com `report ... severity error` comparando saída obtida e saída esperada. Os dois testbenches executam sem nenhuma falha.
 
 Comandos utilizados:
 
@@ -314,87 +320,162 @@ Comandos utilizados:
 ghdl -a final_fp_adder.vhd
 ghdl -a hex_to_7seg.vhd
 ghdl -a final_fp_adder_de10.vhd
-ghdl -a tb_fp_adder.vhd
-ghdl -a tb_fp_adder_de10.vhd
+ghdl -a tb_ondas_core.vhd
+ghdl -a tb_ondas_de10.vhd
 
-# elaboração e execução do testbench do núcleo
-ghdl -e tb_fp_adder
-ghdl -r tb_fp_adder --vcd=adder_wave.vcd
+# núcleo
+ghdl -e tb_ondas_core
+ghdl -r tb_ondas_core --vcd=ondas_core.vcd
 
-# elaboração e execução do testbench de integração
-ghdl -e tb_fp_adder_de10
-ghdl -r tb_fp_adder_de10 --vcd=wave.vcd
+# sistema completo (chaves, botões e displays)
+ghdl -e tb_ondas_de10
+ghdl -r tb_ondas_de10 --vcd=ondas_de10.vcd
 
-# visualização
-gtkwave adder_wave.vcd
-gtkwave wave.vcd
+# visualização (os .gtkw já sobem com os sinais agrupados e em hexadecimal)
+gtkwave ondas_core.vcd ondas_core.gtkw &
+gtkwave ondas_de10.vcd ondas_de10.gtkw &
 ```
+
+Alternativamente, o script `rodar_simulacao.sh` executa toda a sequência acima:
+
+```bash
+chmod +x rodar_simulacao.sh
+./rodar_simulacao.sh
+```
+
+> Os avisos `NUMERIC_STD."=": metavalue detected` no instante `0 ms` são esperados: aparecem antes dos sinais combinacionais estabilizarem e não correspondem a falhas de verificação.
 
 #### Casos de teste e resultados esperados
 
-Os dois testbenches usam os **mesmos sete casos**, escolhidos para cobrir exatamente os quatro casos do 4º estágio (normalização). Todas as verificações são feitas com `assert ... severity error`.
+Os oito casos foram escolhidos para cobrir os quatro casos do 4º estágio (normalização) mais os comportamentos de limite observados na demonstração presencial.
 
-| # | Operação | Entradas (`S \| E \| F`) | Saída esperada | Display | Caso de normalização exercitado |
+| # | Operação | Entradas (`S \| E \| F`) | Saída esperada | Display | Caso de normalização |
 |---|---|---|---|---|---|
-| 1 | `0,75 + (−0,5) = 0,25` | `0\|0000\|11000000` e `1\|0000\|10000000` | `0\|0000\|01000000` | `0040` | **Caso 3** (parcial, `leado=1 > big_exp=0`) |
-| 2 | `0,25 + 0 = 0,25` | `0\|0001\|00100000` e `0\|0000\|00000000` | `0\|0000\|01000000` | `0040` | **Caso 3** (`shift_left` por `big_exp = 1`) |
-| 3 | `0,25 + 0,25 = 0,5` | `0\|0000\|01000000` (×2) | `0\|0000\|10000000` | `0080` | **Caso 4** (convencional, `leado = 0`) |
-| 4 | `0,00390625 + 0,00390625 = 0,0078125` | `0\|0000\|00000001` (×2) | `0\|0000\|00000010` | `0002` | **Caso 3** (limite inferior) |
-| 5 | `+0,00390625 + (−0,0078125) = −0,00390625` | `0\|0000\|00000001` e `1\|0000\|00000010` | `1\|0000\|00000001` | `1001` | **Caso 3** + preservação do sinal negativo |
-| 6 | `+0,00390625 + (−0,00390625) = 0` | `0\|0000\|00000001` e `1\|0000\|00000001` | `0\|0000\|00000000` | `0000` | **Caso 1** (zero canônico) |
-| 7 | `16320 + 16320 = 32640` | `0\|1110\|11111111` (×2) | `0\|1111\|11111111` | `0FFF` | **Caso 2** (carry, `frac_sum(8) = '1'`) |
+| T1 | `0,25 + 0,25 = 0,5` | `0\|0000\|01000000` (×2) | `0\|0000\|10000000` | `0080` | **Caso 4** (convencional, `leado = 0`) |
+| T2 | `0,75 + (−0,5) = 0,25` | `0\|0000\|11000000` e `1\|0000\|10000000` | `0\|0000\|01000000` | `0040` | **Caso 3** (parcial, `leado = 1 > big_exp = 0`) |
+| T3 | `0,25 + 0 = 0,25` | `0\|0001\|00100000` e `0\|0000\|00000000` | `0\|0000\|01000000` | `0040` | **Caso 3** (`shift_left` por `big_exp = 1`) |
+| T4 | `1,5 + (−1,5) = 0` | `0\|0001\|11000000` e `1\|0001\|11000000` | `0\|0000\|00000000` | `0000` | **Caso 1** (zero canônico) |
+| T5 | `16320 + 16320 = 32640` | `0\|1110\|11111111` (×2) | `0\|1111\|11111111` | `0FFF` | **Caso 2** (carry, `frac_sum(8) = '1'`) |
+| T6 | `1,0 + (−1,5) = −0,5` | `0\|0001\|10000000` e `1\|0001\|11000000` | `1\|0000\|10000000` | `1080` | **Caso 4** + sinal do maior operando |
+| T7 | `32000 + 100 = 32000` | `0\|1111\|11111010` e `0\|0111\|11001000` | `0\|1111\|11111010` | `0FFA` | **Caso 4** + truncamento do alinhamento |
+| T8 | `32640 + 32640` | `0\|1111\|11111111` (×2) | `0\|0000\|11111111` | `00FF` | **Caso 2** + overflow do expoente |
+
+O testbench do sistema completo acrescenta um nono caso (T9) que demonstra o mecanismo de *preview* dos operandos armazenados.
 
 Os quatro casos do 4º estágio pedidos na Etapa 1, detalhados:
 
-* **Caso 1 — cancelamento exato (Teste 6):** `frac_sum = "000000000"`; expoente e significância são zerados e `sign_out` é forçado a `'0'`. Verifica-se que não sobra expoente residual nem aparece `−0`.
-* **Caso 2 — carry (Teste 7):** `0_11111111 + 0_11111111 = 1_11111110`; como `frac_sum(8) = '1'`, o resultado é deslocado uma casa à direita (`frac_sum(8 downto 1) = 11111111`) e o expoente vai de `1110` para `1111`.
-* **Caso 3 — normalização parcial (Testes 1, 2, 4 e 5):** `leado > big_exp`. No Teste 2, `frac_sum = 0_00100000` com `leado = 2` e `big_exp = 1`: como só há uma unidade de expoente disponível, o circuito desloca **uma** casa (`shift_left(..., 1) = 01000000`) e para com `E = 0`. O valor 0,25 é preservado, ainda que a significância não fique normalizada.
-* **Caso 4 — normalização convencional (Teste 3):** `frac_sum = 0_10000000`, `leado = 0`, `big_exp = 0`; como `leado` não é maior que `big_exp`, aplica-se `normal_exp = big_exp − leado` e `normal_frac = normal_sum`, devolvendo a forma `0.1xxxxxxx`.
+* **Caso 1 — cancelamento exato (T4):** `frac_sum = "000000000"`; expoente e significância são zerados e `sign_out` é forçado a `'0'`. Verifica-se que não sobra expoente residual nem aparece `−0`, mesmo com os operandos em `E = 1`.
+* **Caso 2 — carry (T5):** `0_11111111 + 0_11111111 = 1_11111110`; como `frac_sum(8) = '1'`, o resultado é deslocado uma casa à direita (`frac_sum(8 downto 1) = 11111111`) e o expoente vai de `1110` para `1111`.
+* **Caso 3 — normalização parcial (T2 e T3):** `leado > big_exp`. No T3, `frac_sum = 0_00100000` com `leado = 2` e `big_exp = 1`: como só há uma unidade de expoente disponível, o circuito desloca **uma** casa (`shift_left(..., 1) = 01000000`) e para com `E = 0`. O valor 0,25 é preservado, ainda que a significância não fique normalizada.
+* **Caso 4 — normalização convencional (T1):** `frac_sum = 0_10000000`, `leado = 0`, `big_exp = 0`; como `leado` não é maior que `big_exp`, aplica-se `normal_exp = big_exp − leado` e `normal_frac = normal_sum`, devolvendo a forma `0.1xxxxxxx`.
 
-#### Testbenches de visualização das formas de onda
-
-Para produzir formas de onda legíveis do 4º estágio, foram escritos dois testbenches adicionais que **não alteram nenhum arquivo do projeto** — apenas instanciam os módulos existentes:
-
-| Arquivo | Alvo | Casos | Duração |
-|---|---|---|---|
-| `tb_ondas_core.vhd` | `fp_adder_v2` diretamente | 8 | 100 ns por caso, 800 ns total |
-| `tb_ondas_de10.vhd` | `fp_adder_de10` via `SW`/`KEY` | 9 | 820 ns por caso, 7950 ns total |
-
-O segundo reproduz exatamente o procedimento manual usado na placa (reset por `SW8`, fração com `SW9 = 0`, sinal/expoente com `SW9 = 1`, gravação na borda de subida de `KEY0`/`KEY1`) e decodifica os segmentos de volta para dígitos (`disp3..disp0`), de modo que a onda mostra diretamente `0 0 4 0` em vez de padrões de oito bits. Um sinal `fase` indica em que etapa do protocolo a simulação está.
-
-Além dos casos da tabela anterior, esses testbenches cobrem dois comportamentos observados no teste presencial:
+Além dos quatro casos acima, dois comportamentos de limite foram medidos:
 
 | # | Operação | Resultado | Explicação |
 |---|---|---|---|
 | T7 | `32000 + 100` | `0FFA` (= 32000) | `diff_exp = 15 − 7 = 8` → `align_frac = "00000000"`: o menor operando é descartado no alinhamento. Coerente com a resolução do formato, que em `E = 15` é de 128 |
 | T8 | `32640 + 32640` | `00FF` (= 0,996) | **Overflow do expoente:** `big_exp = 1111` e `+1` faz wrap para `0000`. Limitação documentada, sem saturação nem flag |
-
-**Formas de onda:**
-
-Visão geral dos oito casos do núcleo (`ondas_core.vcd`, 0 a 800 ns):
-
-**Visão geral - núcleo**
-
-<img width="1600" height="825" alt="image" src="https://github.com/user-attachments/assets/c46409cb-d761-4a4b-b2ff-45e7fc842ba0" />
-
-
-Os quatro casos da normalização, em detalhe:
-
-| Caso | Janela | Figura |
-|---|---|---|
-| Caso 4 — normalização convencional | 0–100 ns | `![Caso 4](fig-caso4.png)` |
-| Caso 3 — normalização parcial | 100–200 ns | `![Caso 3a](fig-caso3a.png)` |
-| Caso 3 — `shift_left` limitado por `big_exp` | 200–300 ns | `![Caso 3b](fig-caso3b.png)` |
-| Caso 1 — cancelamento / zero canônico | 300–400 ns | `![Caso 1](fig-caso1.png)` |
-| Caso 2 — carry | 400–500 ns | `![Caso 2](fig-caso2.png)` |
-
-Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
- 
-## Testbench do Sistema Completo — `tb_ondas_de10.vhd`, sendo referente a como a placa esta reagindo frente aos inputs que ela oferece
  
 ---
+
+#### Figuras — Núcleo (`tb_ondas_core.vhd`)
+
+Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relevantes: `caso_norm`, `diff_exp`, `align_frac`, `frac_sum`, `leado`, `normal_exp`, `normal_frac` e a comparação `display_obtido` × `display_esperado`.
+
+---
+
+####### **Teste 1: Visão Geral — Núcleo (8 casos)**
+
+**Intervalo:** 0 a 800 ns (Zoom Fit)
+
+**O que testa:** Sequência completa dos oito casos do núcleo `fp_adder_v2`, expondo as quatro etapas internas. O sinal `caso_norm` identifica qual dos quatro ramos da normalização foi acionado em cada janela: `4, 3, 3, 1, 2, 4, 4, 2`. **Em todas as oito colunas `display_obtido` é igual a `display_esperado`**, o que confirma os oito casos de uma só vez.
+
+<!-- COLE AQUI O PRINT: ondas_core.vcd, 0 a 800 ns -->
+
+---
+
+####### **Teste 1.1: Caso 4 — Normalização Convencional**
+
+**Intervalo:** 0 a 100 ns
+
+**O que testa:** `0,25 + 0,25 = 0,5`. Sinais iguais, `diff_exp = 0`, `frac_sum = 0_10000000`. Como `leado = 0` não é maior que `big_exp = 0`, aplica-se o ramo convencional: `normal_exp = 0` e `normal_frac = normal_sum = 10000000`. Resultado `0080`.
+
+<!-- COLE AQUI O PRINT: ondas_core.vcd, 0 a 100 ns -->
+
+---
+
+####### **Teste 1.2: Caso 3 — Normalização Parcial**
+
+**Intervalo:** 100 a 200 ns
+
+**O que testa:** `0,75 + (−0,5) = 0,25`. Sinais diferentes, então `frac_sum = C0 − 80 = 0_01000000`. Com `leado = 1` e `big_exp = 0`, a normalização completa exigiria expoente negativo: o circuito para em `E = 0` e preserva a significância não normalizada. **No código original este caso devolvia zero.** Resultado `0040`.
+
+<!-- COLE AQUI O PRINT: ondas_core.vcd, 100 a 200 ns -->
+
+---
+
+####### **Teste 1.3: Caso 3 — `shift_left` Limitado por `big_exp`**
+
+**Intervalo:** 200 a 300 ns
+
+**O que testa:** `0,00100000 × 2¹ + 0 = 0,25`. `frac_sum = 0_00100000` com `leado = 2` e `big_exp = 1`. Como só há uma unidade de expoente disponível, `shift_left(frac_sum, 1)` desloca **uma** casa em vez de duas, resultando em `01000000` com `E = 0`. Demonstra que o deslocamento é limitado pelo expoente disponível, e não pela contagem de zeros. Resultado `0040`.
+
+<!-- COLE AQUI O PRINT: ondas_core.vcd, 200 a 300 ns -->
+
+---
+
+####### **Teste 1.4: Caso 1 — Cancelamento Exato / Zero Canônico**
+
+**Intervalo:** 300 a 400 ns
+
+**O que testa:** `1,5 + (−1,5) = 0`. `frac_sum = "000000000"` aciona o primeiro ramo do processo, que zera expoente e significância **antes** do teste de carry. Note que `leado = 7` (nenhum bit em 1), valor que sem este ramo produziria expoente residual. A saída `sign_out` é forçada a `'0'`, eliminando o `−0`. Resultado `0000`.
+
+<!-- COLE AQUI O PRINT: ondas_core.vcd, 300 a 400 ns -->
+
+---
+
+####### **Teste 1.5: Caso 2 — Carry na Soma**
+
+**Intervalo:** 400 a 500 ns
+
+**O que testa:** `16320 + 16320 = 32640`. `frac_sum = 0_11111111 + 0_11111111 = 1_11111110`, com o nono bit em 1. O ramo de carry desloca uma casa à direita (`frac_sum(8 downto 1) = 11111111`) e incrementa o expoente de `1110` para `1111`. Resultado `0FFF`.
+
+<!-- COLE AQUI O PRINT: ondas_core.vcd, 400 a 500 ns -->
+
+---
+
+####### **Teste 1.6: Resultado Negativo — Ordenação por Magnitude**
+
+**Intervalo:** 500 a 600 ns
+
+**O que testa:** `1,0 + (−1,5) = −0,5`. A Etapa 1 compara apenas `exp & frac`, sem o bit de sinal, e elege o operando negativo como `big_*`. A subtração dá `C0 − 80 = 0_01000000` e o resultado herda `big_sign = '1'`. **É a única janela do print de visão geral em que `sign_out` está em nível alto.** Resultado `1080`.
+
+<!-- COLE AQUI O PRINT: ondas_core.vcd, 500 a 600 ns -->
+
+---
+
+####### **Teste 1.7: Truncamento no Alinhamento (`diff_exp ≥ 8`)**
+
+**Intervalo:** 600 a 700 ns
+
+**O que testa:** `32000 + 100 = 32000`. Com `big_exp = 1111` e `small_exp = 0111`, `diff_exp = 8` cai no `when others` do alinhador e **`align_frac` fica em `00000000`**: o operando menor é descartado antes da soma. Este é o comportamento observado na demonstração presencial. Não é overflow — 100 é menor que o próprio passo de resolução em `E = 15`, que vale 128. Resultado `0FFA`.
+
+<!-- COLE AQUI O PRINT: ondas_core.vcd, 600 a 700 ns -->
+
+####### **Teste 1.8: Overflow do Expoente (limitação)**
+
+**Intervalo:** 700 a 800 ns
+
+**O que testa:** `32640 + 32640`, que deveria dar 65280. O carry aciona `normal_exp <= big_exp + 1`, mas com `big_exp = 1111` o incremento faz wrap-around para `0000`. **Compare com o Teste 1.5: mesma `frac_sum = 1FE`, mas `normal_exp` sai `F` lá e `0` aqui.** Limitação documentada do formato, sem saturação nem flag de erro. Resultado `00FF`.
+
+<!-- COLE AQUI O PRINT: ondas_core.vcd, 700 a 800 ns -->
+
+---
+#### Figuras — Sistema Completo (`tb_ondas_de10.vhd`)
+
+As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, botões e displays. O sinal `fase` numera a etapa do protocolo — `1` reset, `2` fração do operando 1, `3` sinal/expoente do operando 1, `4` fração do operando 2, `5` sinal/expoente do operando 2, `6` resultado, `7` preview.
  
-### **Teste 1: Visão Geral — Protocolo Completo em 9 Casos**
+###### **Teste 2: Visão Geral — Protocolo Completo em 9 Casos**
  
 **Intervalo:** 0 a 7950 ns (Zoom Fit)
  
@@ -406,7 +487,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 ---
  
-### **Teste 1.1: Protocolo Completo — Caso T1 (0,25 + 0,25 = 0,5)**
+##### **Teste 2.1: Protocolo Completo — Caso T1 (0,25 + 0,25 = 0,5)**
  
 **Intervalo:** 0 a 820 ns
  
@@ -416,7 +497,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 ---
  
-### **Teste 1.2: Protocolo — Caso T2 (0,75 + (−0,5) = 0,25)**
+##### **Teste 2.2: Protocolo — Caso T2 (0,75 + (−0,5) = 0,25)**
  
 **Intervalo:** 820 a 1640 ns
  
@@ -426,7 +507,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 ---
  
-### **Teste 1.3: Protocolo — Caso T3 (0,25 não normalizado + 0)**
+##### **Teste 2.3: Protocolo — Caso T3 (0,25 não normalizado + 0)**
  
 **Intervalo:** 1640 a 2460 ns
  
@@ -436,7 +517,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 ---
  
-### **Teste 1.4: Protocolo — Caso T4 (1,5 + (−1,5) = 0)**
+##### **Teste 2.4: Protocolo — Caso T4 (1,5 + (−1,5) = 0)**
  
 **Intervalo:** 2460 a 3280 ns
  
@@ -446,7 +527,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 ---
  
-### **Teste 1.5: Protocolo — Caso T5 (16320 + 16320 = 32640)**
+##### **Teste 2.5: Protocolo — Caso T5 (16320 + 16320 = 32640)**
  
 **Intervalo:** 3280 a 4100 ns
  
@@ -456,7 +537,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 ---
  
-### **Teste 1.6: Protocolo — Caso T6 (1,0 + (−1,5) = −0,5)**
+##### **Teste 2.6: Protocolo — Caso T6 (1,0 + (−1,5) = −0,5)**
  
 **Intervalo:** 4100 a 4920 ns
  
@@ -466,7 +547,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 ---
  
-### **Teste 1.7: Protocolo — Caso T7 (32000 + 100 = 32000 — Truncamento)**
+##### **Teste 2.7: Protocolo — Caso T7 (32000 + 100 = 32000 — Truncamento)**
  
 **Intervalo:** 4920 a 5740 ns
  
@@ -476,7 +557,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 ---
  
-### **Teste 1.8: Protocolo — Caso T8 (32640 + 32640 — Overflow do Expoente)**
+##### **Teste 2.8: Protocolo — Caso T8 (32640 + 32640 — Overflow do Expoente)**
  
 **Intervalo:** 5740 a 6560 ns
  
@@ -486,7 +567,7 @@ Protocolo de entrada pelas chaves e resultado nos displays (`ondas_de10.vcd`):
  
 ---
  
-### **Teste 1.9: Preview — Demonstração de Operandos Armazenados**
+##### **Teste 2.9: Preview — Demonstração de Operandos Armazenados**
  
 **Intervalo:** 6560 a 7950 ns
  
@@ -1178,6 +1259,20 @@ GEMINI - gefração da nossa calculadora para ajudar nos testes presencialmente,
 **Prompts Utilizados: Geração da calculadora (index.html, app.js e style.css)**
 onde foram, anexados arquivos do vhdl para contexto do funcionamento
 
+**O Erro da IA (Alucinação):**
+
+> **1. Inconsistência na geração da documentação do projeto, para relatório final.** Mesmo com vhdl e testes funcionando a IA estava aluciando nas explicações e resumos para prrenchimento do mesmo, forçando revisão de cada linha, e reescrever diversas linhas.
+
+> **2. Expectativa errada em um caso de teste (erro detectado em execução).** Ao gerar o teste de *preview*, a IA previu que segurar `KEY0` mostraria `01C0` (1,5). A simulação falhou e mostrou `00C0`. O motivo é que o *preview* combina o campo **que está nas chaves** com o campo armazenado — e `SW9` ainda estava em `1` do carregamento do operando anterior. **O circuito estava certo; a expectativa da IA é que estava errada.**
+
+**A Correção Humana:**
+
+> **1. Conferência manual de todos os prints.** Nenhuma forma de onda entrou no relatório sem ter os sinais internos (`diff_exp`, `align_frac`, `frac_sum`, `leado`, `normal_exp`, `normal_frac`) conferidos contra o comportamento esperado do VHDL. Foi assim que confirmamos, por exemplo, que `align_frac = 00` no Teste 1.7 e que `normal_exp` faz wrap de `F` para `0` no Teste 1.8.
+
+> **2. Correção do testbench, não do circuito.** No caso do *preview*, a correção foi ajustar o estímulo — voltar `SW9 = 0` e colocar a fração do operando 1 nas chaves antes de segurar o botão — e não alterar o hardware. Essa distinção só foi possível porque a simulação foi de fato executada: **o erro apareceu como `assertion error`, não como suspeita.** O núcleo `fp_adder_v2` não sofreu nenhuma modificação para acomodar os testes.
+
+> **3. Responsabilidade técnica.** Todo o código gerado com auxílio de IA foi lido, executado e validado pelo grupo antes de entrar no projeto. Os testbenches foram escritos para instanciar os módulos existentes sem alterá-los, justamente para que a evidência de simulação valesse para o mesmo código que foi sintetizado e gravado na placa.
+
 > `
 quero fazer um frontend de uma pagina pra nos ajudar a testar isso pessoalmente, basicamente front end bonito porem sem framework, sem complicar nada, zero
 precisa ter o seguinte
@@ -1216,4 +1311,4 @@ Documentadas explicitamente para deixar claro o escopo do formato simplificado:
 * **Botões usados diretamente como evento de gravação,** sem debounce nem sincronização com o clock de 50 MHz da placa; o reset por `SW8` é assíncrono.
 * **Núcleo sem pipeline:** todo o caminho (ordenação → alinhamento → soma → contagem de zeros → deslocamento → normalização) é um único caminho combinacional. Aceitável aqui, já que a interação é manual.
 * **Os displays mostram campos, não o valor decimal:** `0FFF` significa `S=0`, `E=F`, `F=FF`, e não o inteiro `0x0FFF`.
-* **Cobertura de testes não é exaustiva:** 7 casos por testbench, contra 2²⁶ pares possíveis de entradas.
+* **Cobertura de testes não é exaustiva:** 8 casos no testbench do núcleo e 9 no testbench de integração, contra 2²⁶ pares possíveis de entradas. Os casos foram escolhidos por cobertura de ramo (os quatro caminhos da normalização) e pelos limites do formato, não por amostragem.

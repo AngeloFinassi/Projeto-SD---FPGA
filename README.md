@@ -390,7 +390,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 **O que testa:** Sequência completa dos oito casos do núcleo `fp_adder_v2`, expondo as quatro etapas internas. O sinal `caso_norm` identifica qual dos quatro ramos da normalização foi acionado em cada janela: `4, 3, 3, 1, 2, 4, 4, 2`. **Em todas as oito colunas `display_obtido` é igual a `display_esperado`**, o que confirma os oito casos de uma só vez.
 
-<!-- COLE AQUI O PRINT: ondas_core.vcd, 0 a 800 ns -->
+<img width="1600" height="825" alt="image" src="https://github.com/user-attachments/assets/f0d3768e-dc55-46c9-94f1-201741d161d4" />
 
 ---
 
@@ -400,7 +400,8 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 **O que testa:** `0,25 + 0,25 = 0,5`. Sinais iguais, `diff_exp = 0`, `frac_sum = 0_10000000`. Como `leado = 0` não é maior que `big_exp = 0`, aplica-se o ramo convencional: `normal_exp = 0` e `normal_frac = normal_sum = 10000000`. Resultado `0080`.
 
-<!-- COLE AQUI O PRINT: ondas_core.vcd, 0 a 100 ns -->
+<img width="1606" height="838" alt="image" src="https://github.com/user-attachments/assets/73a85bf8-739c-4c42-aad9-fbfe32ac1e3d" />
+
 
 ---
 
@@ -410,7 +411,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 **O que testa:** `0,75 + (−0,5) = 0,25`. Sinais diferentes, então `frac_sum = C0 − 80 = 0_01000000`. Com `leado = 1` e `big_exp = 0`, a normalização completa exigiria expoente negativo: o circuito para em `E = 0` e preserva a significância não normalizada. **No código original este caso devolvia zero.** Resultado `0040`.
 
-<!-- COLE AQUI O PRINT: ondas_core.vcd, 100 a 200 ns -->
+<img width="1606" height="853" alt="image" src="https://github.com/user-attachments/assets/bc2fee74-4e62-49be-926c-50971f7341ec" />
 
 ---
 
@@ -420,7 +421,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 **O que testa:** `0,00100000 × 2¹ + 0 = 0,25`. `frac_sum = 0_00100000` com `leado = 2` e `big_exp = 1`. Como só há uma unidade de expoente disponível, `shift_left(frac_sum, 1)` desloca **uma** casa em vez de duas, resultando em `01000000` com `E = 0`. Demonstra que o deslocamento é limitado pelo expoente disponível, e não pela contagem de zeros. Resultado `0040`.
 
-<!-- COLE AQUI O PRINT: ondas_core.vcd, 200 a 300 ns -->
+<img width="1610" height="878" alt="image" src="https://github.com/user-attachments/assets/01307025-26c7-4302-ac05-7fc6a0d36b36" />
 
 ---
 
@@ -430,7 +431,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 **O que testa:** `1,5 + (−1,5) = 0`. `frac_sum = "000000000"` aciona o primeiro ramo do processo, que zera expoente e significância **antes** do teste de carry. Note que `leado = 7` (nenhum bit em 1), valor que sem este ramo produziria expoente residual. A saída `sign_out` é forçada a `'0'`, eliminando o `−0`. Resultado `0000`.
 
-<!-- COLE AQUI O PRINT: ondas_core.vcd, 300 a 400 ns -->
+<img width="1600" height="910" alt="image" src="https://github.com/user-attachments/assets/6a639e0a-7588-4cb3-9f64-5c08763bb69a" />
 
 ---
 
@@ -440,7 +441,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 **O que testa:** `16320 + 16320 = 32640`. `frac_sum = 0_11111111 + 0_11111111 = 1_11111110`, com o nono bit em 1. O ramo de carry desloca uma casa à direita (`frac_sum(8 downto 1) = 11111111`) e incrementa o expoente de `1110` para `1111`. Resultado `0FFF`.
 
-<!-- COLE AQUI O PRINT: ondas_core.vcd, 400 a 500 ns -->
+<img width="1609" height="845" alt="image" src="https://github.com/user-attachments/assets/22b7c44a-92d6-4e3f-ba2f-f4ff2b40f470" />
 
 ---
 
@@ -450,7 +451,8 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 **O que testa:** `1,0 + (−1,5) = −0,5`. A Etapa 1 compara apenas `exp & frac`, sem o bit de sinal, e elege o operando negativo como `big_*`. A subtração dá `C0 − 80 = 0_01000000` e o resultado herda `big_sign = '1'`. **É a única janela do print de visão geral em que `sign_out` está em nível alto.** Resultado `1080`.
 
-<!-- COLE AQUI O PRINT: ondas_core.vcd, 500 a 600 ns -->
+<img width="1607" height="783" alt="image" src="https://github.com/user-attachments/assets/a7fb6aa0-3137-41c4-ad00-cc46b9124bd4" />
+
 
 ---
 
@@ -460,7 +462,7 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 **O que testa:** `32000 + 100 = 32000`. Com `big_exp = 1111` e `small_exp = 0111`, `diff_exp = 8` cai no `when others` do alinhador e **`align_frac` fica em `00000000`**: o operando menor é descartado antes da soma. Este é o comportamento observado na demonstração presencial. Não é overflow — 100 é menor que o próprio passo de resolução em `E = 15`, que vale 128. Resultado `0FFA`.
 
-<!-- COLE AQUI O PRINT: ondas_core.vcd, 600 a 700 ns -->
+<img width="1610" height="809" alt="image" src="https://github.com/user-attachments/assets/4dae959e-dad6-4ba8-b0f7-ecbe6f35a878" />
 
  **Teste 1.8: Overflow do Expoente (limitação)**
 
@@ -468,7 +470,8 @@ Cada caso ocupa exatamente 100 ns, então as janelas são redondas. Sinais relev
 
 **O que testa:** `32640 + 32640`, que deveria dar 65280. O carry aciona `normal_exp <= big_exp + 1`, mas com `big_exp = 1111` o incremento faz wrap-around para `0000`. **Compare com o Teste 1.5: mesma `frac_sum = 1FE`, mas `normal_exp` sai `F` lá e `0` aqui.** Limitação documentada do formato, sem saturação nem flag de erro. Resultado `00FF`.
 
-<!-- COLE AQUI O PRINT: ondas_core.vcd, 700 a 800 ns -->
+<img width="1603" height="838" alt="image" src="https://github.com/user-attachments/assets/07dfd56d-9b0d-4041-91f1-89a50ca492b4" />
+
 
 ---
 #### Figuras — Sistema Completo (`tb_ondas_de10.vhd`)
@@ -1233,9 +1236,6 @@ Utilizamos o `[ChatGPT/Claude/Gemini]` para auxiliar na geração do Testbench e
 GPT - Utilizado para tirar dúvidas gerais do projetos, com exemplos do que deveriamos alterar no vhdl, todo exemplos falharam, IA não conseguiu gerar o código assim como as outras, sempre exisitam erros e bugs especifícos que demandavam altear maior parte do código, sendoa IA para vhdl não tão efiicente para projetos que demandam maior complexidade, mesmo com descrição do projeto e arquivos anexados, não gerou um resultado interessante.
 
 CLAUDE - Mais eficiente, utilizado para analisar o projeto pronto e ajudar no preenchimento do relatório, tanto na formatação do .md, mas tbm ajudar com a confeção de testes para enriquecimento do mesmo. Foi descrito informalmente para Gemini com código pronto, para fazer um prompt otimziado para ia, descrevendo como os testes foram feitos presecialmente + análise do vhdl, foi possível gerar vários testes rapidamente, após apresentação do projeto presencialmente, foi possivel ter outra forma de validar o projeto (Todos os prints de testes foram analisados, para garantir que não houve alucinação de IA)
-
-histórico em md da conversa gerada para o frontend, calculadora para validar os resultados e nos ajudar nos testes da placa esta documentado e disponíveis para download:
-
 
 GEMINI - gefração da nossa calculadora para ajudar nos testes presencialmente, conforme promp abaixo:
 

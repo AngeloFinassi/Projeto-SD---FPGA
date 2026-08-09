@@ -496,7 +496,8 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 **O que testa:** Ciclo completo de entrada: reset → fração operando 1 → sinal/expoente operando 1 → fração operando 2 → sinal/expoente operando 2 → resultado nos displays. Resultado: `0080` (0,5).
  
-<img width="1404" height="948" alt="image" src="https://github.com/user-attachments/assets/ab25c284-ec29-4b73-95fb-d9bcdde48210" />
+<img width="1292" height="877" alt="image" src="https://github.com/user-attachments/assets/28e1ef8d-a9ba-46d1-819a-0ffee4c65307" />
+
  
 ---
  
@@ -506,7 +507,8 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 **O que testa:** Normalização parcial através do protocolo de chaves. Displays mostram `0040` (0,25).
  
-<img width="1419" height="944" alt="image" src="https://github.com/user-attachments/assets/07e85081-62a9-4281-815f-c29560a3ace1" />
+<img width="1290" height="883" alt="image" src="https://github.com/user-attachments/assets/e53b2499-6ab0-4cbd-8287-dc35b11d501d" />
+
  
 ---
  
@@ -516,7 +518,8 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 **O que testa:** `shift_left` limitado por `big_exp`. Displays mostram `0040` (0,25).
  
-<img width="1600" height="956" alt="image" src="https://github.com/user-attachments/assets/7c761f45-1282-4287-9558-2d269d270168" />
+<img width="1287" height="875" alt="image" src="https://github.com/user-attachments/assets/31695c88-7c0b-4a06-af27-9b369675b5e9" />
+
  
 ---
  
@@ -526,7 +529,8 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 **O que testa:** Cancelamento exato e zero canônico. Displays mostram `0000`.
  
-<img width="1600" height="963" alt="image" src="https://github.com/user-attachments/assets/0e8b0572-f999-4377-aac2-fde5680ff17f" />
+<img width="1290" height="875" alt="image" src="https://github.com/user-attachments/assets/3a7d0af3-8f83-4d06-a87c-3d449ceb4c98" />
+
  
 ---
  
@@ -536,7 +540,8 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 **O que testa:** Carry na soma. Displays mostram `0FFF` (32640).
  
-<img width="1600" height="966" alt="image" src="https://github.com/user-attachments/assets/a8c0ab02-537b-4bb0-8e76-6569e6b71e90" />
+<img width="1288" height="887" alt="image" src="https://github.com/user-attachments/assets/31cdd420-e3da-4210-bf23-31e8fcf41b11" />
+
  
 ---
  
@@ -546,7 +551,8 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 **O que testa:** Resultado negativo. O primeiro dígito hexadecimal (`HEX3`) mostra `1` (sinal negativo). Displays mostram `1080`.
  
-<img width="1600" height="970" alt="image" src="https://github.com/user-attachments/assets/58b4b3c2-af91-47be-b01d-2f2ab5bfb4a5" />
+<img width="1283" height="878" alt="image" src="https://github.com/user-attachments/assets/c6a9216d-feaa-4acd-bf8d-7556734cb2ec" />
+
  
 ---
  
@@ -556,7 +562,8 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 **O que testa:** Limitação: `diff_exp = 8` causa descarte completo do menor operando. Displays mostram `0FFA` (32000). Este é o caso observado na demonstração presencial.
  
-<img width="1600" height="965" alt="image" src="https://github.com/user-attachments/assets/f14dc06a-24ab-4587-b956-48efa25946ee" />
+<img width="1284" height="876" alt="image" src="https://github.com/user-attachments/assets/0b10ea47-8bd8-49b3-948b-31cb4ca0fb63" />
+
  
 ---
  
@@ -566,7 +573,8 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 **O que testa:** Limitação documentada: overflow do expoente sem tratamento. Displays mostram `00FF` (resultado incorreto, devido ao wrap-around de `exp 1111 + 1 = 0000`).
  
-<img width="1600" height="969" alt="image" src="https://github.com/user-attachments/assets/ed76b0fc-8ccc-4f77-80ed-36cc436f07f4" />
+<img width="1289" height="882" alt="image" src="https://github.com/user-attachments/assets/897eff0d-2ce2-430f-a8bf-fed509e37969" />
+
  
 ---
  
@@ -576,7 +584,8 @@ As figuras abaixo mostram como a placa reage aos estímulos físicos: chaves, bo
  
 **O que testa:** Funcionalidade de preview: enquanto `KEY0` é pressionado, o display mostra o operando 1 armazenado; enquanto `KEY1` é pressionado, mostra o operando 2; com ambos soltos, mostra o resultado. Cargas: operando 1 = 1,5 (`01C0`), operando 2 = 0,5 (`0080`), resultado = 2,0 (`0280`).
  
-<img width="1600" height="966" alt="image" src="https://github.com/user-attachments/assets/a3b52c0a-325b-456a-9cfa-8658878c5cc1" />
+<img width="1286" height="881" alt="image" src="https://github.com/user-attachments/assets/803b2b47-816b-43f7-87c3-bc9f23b1e395" />
+
  
 ---
 

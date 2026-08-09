@@ -603,6 +603,7 @@ Ao adicionar o -3,8 (12F3 que ja é somado ao Apertar Key 1), gerando o resultad
 
 <img width="433" height="358" alt="image" src="https://github.com/user-attachments/assets/15dff8c0-d404-4811-b45c-59dbc882409c" />
 
+vídeo em questão: https://youtu.be/jicGraFZuXQ
 ---
 
 ### Código VHDL Final
@@ -1229,4 +1230,6 @@ Documentadas explicitamente para deixar claro o escopo do formato simplificado:
 
 
 ## Video
-link aqui, não pode esquecer de botar
+Link do Vídeo
+https://youtu.be/jicGraFZuXQ
+

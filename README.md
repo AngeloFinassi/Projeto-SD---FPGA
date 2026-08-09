@@ -2,7 +2,7 @@
 
 # Tutorial: Implementação de Somador Ponto Flutuante na DE10-Lite
 
-**Autores:** `Angelo Martins Finassi`, `Daniel`, `Leandro`
+**Autores:** `Angelo Martins Finassi`, `Daniel Kenji Matuo`, `Leandro`
 **Disciplina:** Sistemas Digitais Q2.20026
 **Data:** `09/08/2026`
 
@@ -1730,15 +1730,27 @@ run -all
 
 **Compilação sem erros:**
 
-<!-- COLE AQUI O PRINT DA JANELA DE COMPILAÇÃO DO QUESTA -->
+
+<img width="1600" height="843" alt="image" src="https://github.com/user-attachments/assets/6eb0bdb9-4069-4a50-b4f3-25bb048f265e" />
+
+
 
 **Transcript da simulação (nenhum `Error`, todas as verificações satisfeitas):**
 
-<!-- COLE AQUI O PRINT DO TRANSCRIPT COM AS MENSAGENS DE NOTE -->
+
+
+<img width="1600" height="798" alt="image" src="https://github.com/user-attachments/assets/728dc5e3-ae18-4a28-9adf-e417ab36d0b7" />
+
+
 
 **Formas de onda no Questa:**
 
-<!-- COLE AQUI O PRINT DAS ONDAS NO QUESTA -->
+
+
+<img width="1600" height="1000" alt="image" src="https://github.com/user-attachments/assets/f15756fc-c3a6-4b9d-aed8-63a7466e8fa2" />
+
+
+
 
 Os resultados são idênticos aos obtidos no GHDL/GTKWave e documentados nas figuras dos Testes 1 e 2.
 
@@ -1825,13 +1837,24 @@ faça o que te pedi e depois atualize o markdown por favor`
 
 ## 6. Contribuição dos participantes
 
-Utilize a taxonomia CRediT, seguem exemplos:
+Contribuições declaradas com a [Taxonomia CRediT](https://credit.niso.org/) (ANSI/NISO Z39.104-2022), atribuídas por consenso do grupo. Dos 14 papéis da taxonomia, 11 se aplicam ao escopo deste projeto (excluídos: *Funding acquisition*, *Resources*, *Supervision*).
 
-* `Angelo Martins Finassi` — Redação (rascunho original), Redação (revisão e edição), Validação, Visualização, Curadoria de dados
-* `Daniel [sobrenome]` — Software, Investigação, Metodologia
-* `Leandro [sobrenome]` — Análise formal, Validação, Administração do projeto
+| Papel CRediT | Angelo Martins Finassi | Daniel Kenji Matuo | Leandro Scarpi Granelli |
+|---|:---:|:---:|:---:|
+| **Conceptualização** — definição do escopo, das etapas do projeto e da cobertura de testes | ✓ | ✓ | ✓ |
+| **Curadoria de dados** — organização dos casos de teste e dos resultados de simulação e hardware | ✓ | ✓ | |
+| **Análise formal** — análise matemática do algoritmo de normalização e verificação da corretude dos resultados | ✓ | ✓ | ✓ |
+| **Investigação** — execução experimental: simulação funcional e testes críticos em bancada | | ✓ | ✓ |
+| **Metodologia** — definição da estratégia de adaptação do código-fonte e do protocolo de validação em dois níveis | | ✓ | ✓ |
+| **Administração do projeto** — coordenação do grupo, gestão de prazos e organização do repositório | | | ✓ |
+| **Software** — implementação do VHDL (núcleo `fp_adder_v2`, wrapper `fp_adder_de10`, decodificador `hex_to_7seg`) e dos testbenches | | ✓ | |
+| **Validação** — verificação independente dos resultados: conferência manual dos sinais internos, confirmação no Questa e testes na placa | ✓ | ✓ | ✓ |
+| **Visualização** — produção das figuras do GTKWave, capturas de onda e fotografias da placa em operação | ✓ | | |
+| **Redação (rascunho original)** — escrita do tutorial em Markdown seguindo o template fornecido | ✓ | | |
+| **Redação (revisão e edição)** — revisão técnica e editorial do relatório final | ✓ | ✓ | ✓ |
 
 ---
+
 
 ## Anexo — Limitações conhecidas do projeto
 

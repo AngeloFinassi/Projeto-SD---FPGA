@@ -1066,7 +1066,209 @@ end arch;
 <summary><b>tb_ondas_core.vhd</b> — testbench do núcleo (8 casos, 100 ns cada)</summary>
 
 ```vhdl
-COLE AQUI O CONTEÚDO INTEGRAL DE tb_ondas_core.vhd
+--------------------------------------------------------------------
+-- tb_ondas_core.vhd
+--
+-- Testbench de VISUALIZACAO do nucleo fp_adder_v2.
+--
+-- Objetivo: gerar formas de onda legiveis no GTKWave mostrando
+-- o 4o estagio (normalizacao) nos seus quatro casos, alem dos
+-- casos criticos observados na placa.
+--
+-- Nao altera nenhum arquivo do projeto. Apenas instancia o nucleo.
+--
+-- Cada caso ocupa 100 ns, entao no GTKWave basta dar "Zoom Fit"
+-- e ler os degraus.
+--------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity tb_ondas_core is
+end entity;
+
+architecture sim of tb_ondas_core is
+
+    ----------------------------------------------------------------
+    -- Entradas / saidas do nucleo
+    ----------------------------------------------------------------
+    signal sign1 : std_logic := '0';
+    signal exp1  : std_logic_vector(3 downto 0) := (others => '0');
+    signal frac1 : std_logic_vector(7 downto 0) := (others => '0');
+
+    signal sign2 : std_logic := '0';
+    signal exp2  : std_logic_vector(3 downto 0) := (others => '0');
+    signal frac2 : std_logic_vector(7 downto 0) := (others => '0');
+
+    signal sign_out : std_logic;
+    signal exp_out  : std_logic_vector(3 downto 0);
+    signal frac_out : std_logic_vector(7 downto 0);
+
+    ----------------------------------------------------------------
+    -- Sinais auxiliares (so para leitura no GTKWave)
+    --
+    -- teste_id  : numero do caso em execucao
+    -- caso_norm : qual dos 4 casos da normalizacao esta ativo
+    ----------------------------------------------------------------
+    signal teste_id  : std_logic_vector(7 downto 0) := (others => '0');
+    signal caso_norm : std_logic_vector(3 downto 0) := (others => '0');
+
+    -- resultado agrupado, do jeito que aparece nos displays: S E FF
+    signal display_esperado : std_logic_vector(15 downto 0) := (others => '0');
+    signal display_obtido   : std_logic_vector(15 downto 0);
+
+begin
+
+    ----------------------------------------------------------------
+    -- Device Under Test: o nucleo, exatamente como esta no projeto
+    ----------------------------------------------------------------
+    dut: entity work.fp_adder_v2
+        port map (
+            sign1 => sign1,
+            exp1  => exp1,
+            frac1 => frac1,
+
+            sign2 => sign2,
+            exp2  => exp2,
+            frac2 => frac2,
+
+            sign_out => sign_out,
+            exp_out  => exp_out,
+            frac_out => frac_out
+        );
+
+    -- Mesma leitura dos displays HEX3 HEX2 HEX1 HEX0
+    display_obtido <= "000" & sign_out & exp_out & frac_out;
+
+
+    estimulos: process
+
+        ------------------------------------------------------------
+        -- Aplica um caso, espera 100 ns e verifica o resultado
+        ------------------------------------------------------------
+        procedure caso(
+            constant nome  : in string;
+            constant id    : in integer;
+            constant norm  : in integer;   -- 1..4: caso da normalizacao
+
+            constant s1v : in std_logic;
+            constant e1v : in std_logic_vector(3 downto 0);
+            constant f1v : in std_logic_vector(7 downto 0);
+
+            constant s2v : in std_logic;
+            constant e2v : in std_logic_vector(3 downto 0);
+            constant f2v : in std_logic_vector(7 downto 0);
+
+            constant so_v : in std_logic;
+            constant eo_v : in std_logic_vector(3 downto 0);
+            constant fo_v : in std_logic_vector(7 downto 0)
+        ) is
+        begin
+
+            teste_id  <= std_logic_vector(to_unsigned(id, 8));
+            caso_norm <= std_logic_vector(to_unsigned(norm, 4));
+
+            sign1 <= s1v;  exp1 <= e1v;  frac1 <= f1v;
+            sign2 <= s2v;  exp2 <= e2v;  frac2 <= f2v;
+
+            display_esperado <= "000" & so_v & eo_v & fo_v;
+
+            wait for 100 ns;
+
+            if (sign_out = so_v and exp_out = eo_v and frac_out = fo_v) then
+                report "OK      -> " & nome severity note;
+            else
+                report "FALHOU  -> " & nome severity error;
+            end if;
+
+        end procedure;
+
+    begin
+
+        ------------------------------------------------------------
+        -- CASO 4 da normalizacao: convencional
+        -- 0,25 + 0,25 = 0,5      ->  0 0000 10000000  (0080)
+        ------------------------------------------------------------
+        caso("T1  0,25 + 0,25 = 0,5   [normalizacao convencional]", 1, 4,
+             '0', "0000", "01000000",
+             '0', "0000", "01000000",
+             '0', "0000", "10000000");
+
+        ------------------------------------------------------------
+        -- CASO 3 da normalizacao: parcial (leado > big_exp)
+        -- 0,75 + (-0,5) = 0,25   ->  0 0000 01000000  (0040)
+        ------------------------------------------------------------
+        caso("T2  0,75 + (-0,5) = 0,25   [normalizacao parcial]", 2, 3,
+             '0', "0000", "11000000",
+             '1', "0000", "10000000",
+             '0', "0000", "01000000");
+
+        ------------------------------------------------------------
+        -- CASO 3 da normalizacao: shift_left usando big_exp = 1
+        -- 0,00100000 x 2^1 + 0 = 0,25  ->  0 0000 01000000  (0040)
+        ------------------------------------------------------------
+        caso("T3  0,25 (nao normalizado) + 0   [shift_left por big_exp]", 3, 3,
+             '0', "0001", "00100000",
+             '0', "0000", "00000000",
+             '0', "0000", "01000000");
+
+        ------------------------------------------------------------
+        -- CASO 1 da normalizacao: cancelamento exato -> zero canonico
+        -- 1,5 + (-1,5) = 0       ->  0 0000 00000000  (0000)
+        ------------------------------------------------------------
+        caso("T4  1,5 + (-1,5) = 0   [cancelamento, zero canonico]", 4, 1,
+             '0', "0001", "11000000",
+             '1', "0001", "11000000",
+             '0', "0000", "00000000");
+
+        ------------------------------------------------------------
+        -- CASO 2 da normalizacao: carry
+        -- 16320 + 16320 = 32640  ->  0 1111 11111111  (0FFF)
+        ------------------------------------------------------------
+        caso("T5  16320 + 16320 = 32640   [carry, exp+1]", 5, 2,
+             '0', "1110", "11111111",
+             '0', "1110", "11111111",
+             '0', "1111", "11111111");
+
+        ------------------------------------------------------------
+        -- Resultado negativo (ordenacao por magnitude)
+        -- 1,0 + (-1,5) = -0,5    ->  1 0000 10000000  (1080)
+        ------------------------------------------------------------
+        caso("T6  1,0 + (-1,5) = -0,5   [sinal do maior operando]", 6, 4,
+             '0', "0001", "10000000",
+             '1', "0001", "11000000",
+             '1', "0000", "10000000");
+
+        ------------------------------------------------------------
+        -- Truncamento do alinhamento: diff_exp >= 8 zera o menor
+        -- 32000 + 100 = 32000    ->  0 1111 11111010  (0FFA)
+        --
+        -- Este e o caso observado na placa: o 100 desaparece porque
+        -- precisaria de 8 deslocamentos a direita.
+        ------------------------------------------------------------
+        caso("T7  32000 + 100 = 32000   [truncamento, diff_exp >= 8]", 7, 4,
+             '0', "1111", "11111010",
+             '0', "0111", "11001000",
+             '0', "1111", "11111010");
+
+        ------------------------------------------------------------
+        -- Limitacao documentada: overflow do expoente
+        -- 32640 + 32640 deveria ser 65280, mas exp 1111 + 1 = 0000
+        -- Resultado: 0 0000 11111111 (00FF) = 0,99609375
+        ------------------------------------------------------------
+        caso("T8  32640 + 32640   [LIMITACAO: overflow do expoente]", 8, 2,
+             '0', "1111", "11111111",
+             '0', "1111", "11111111",
+             '0', "0000", "11111111");
+
+        report "=== tb_ondas_core: 8 casos executados ===" severity note;
+        wait;
+
+    end process;
+
+end architecture;
+
 ```
 
 </details>
@@ -1075,7 +1277,417 @@ COLE AQUI O CONTEÚDO INTEGRAL DE tb_ondas_core.vhd
 <summary><b>tb_ondas_de10.vhd</b> — testbench de integração (protocolo SW/KEY + verificação dos displays)</summary>
 
 ```vhdl
-COLE AQUI O CONTEÚDO INTEGRAL DE tb_ondas_de10.vhd
+--------------------------------------------------------------------
+-- tb_ondas_de10.vhd
+--
+-- Testbench de VISUALIZACAO do sistema completo (fp_adder_de10).
+--
+-- Ele reproduz exatamente o procedimento usado na placa:
+--
+--   SW8 = 1 -> reset -> SW8 = 0
+--   SW9 = 0 -> SW7..SW0 = fracao   -> aperta e solta KEY
+--   SW9 = 1 -> SW4 = sinal, SW3..SW0 = expoente -> aperta e solta KEY
+--   KEY0 para o operando 1, KEY1 para o operando 2
+--
+-- Nao altera nenhum arquivo do projeto.
+--
+-- Sinais auxiliares criados so para a leitura no GTKWave:
+--   teste_id   -> numero do caso
+--   fase       -> etapa do protocolo de entrada
+--   disp3..0   -> digito hexadecimal que cada display esta mostrando
+--                 (decodificado de volta a partir dos segmentos)
+--------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity tb_ondas_de10 is
+end entity;
+
+architecture sim of tb_ondas_de10 is
+
+    ----------------------------------------------------------------
+    -- Entradas fisicas
+    ----------------------------------------------------------------
+    signal sw   : std_logic_vector(9 downto 0) := (others => '0');
+    signal key0 : std_logic := '1';   -- botao solto = 1 (active-low)
+    signal key1 : std_logic := '1';
+    signal key  : std_logic_vector(1 downto 0);
+
+    ----------------------------------------------------------------
+    -- Displays
+    ----------------------------------------------------------------
+    signal hex0, hex1, hex2, hex3, hex4, hex5 : std_logic_vector(7 downto 0);
+
+    ----------------------------------------------------------------
+    -- Auxiliares de leitura
+    ----------------------------------------------------------------
+    signal teste_id : std_logic_vector(7 downto 0) := (others => '0');
+
+    -- 1 = reset
+    -- 2 = carregando fracao do operando 1
+    -- 3 = carregando sinal/exp do operando 1
+    -- 4 = carregando fracao do operando 2
+    -- 5 = carregando sinal/exp do operando 2
+    -- 6 = mostrando o RESULTADO
+    -- 7 = preview (botao segurado)
+    signal fase : std_logic_vector(3 downto 0) := (others => '0');
+
+    signal disp3, disp2, disp1, disp0 : std_logic_vector(3 downto 0);
+
+    -- Apelidos das chaves, so para o GTKWave ficar legivel
+    signal sw9_modo  : std_logic;                     -- 0 = fracao, 1 = sinal/exp
+    signal sw8_reset : std_logic;
+    signal sw_frac   : std_logic_vector(7 downto 0);  -- SW7..SW0 (modo fracao)
+    signal sw_sinal  : std_logic;                     -- SW4      (modo sinal/exp)
+    signal sw_exp    : std_logic_vector(3 downto 0);  -- SW3..SW0 (modo sinal/exp)
+
+    ----------------------------------------------------------------
+    -- Padroes de 7 segmentos (active-low), iguais ao hex_to_7seg
+    ----------------------------------------------------------------
+    constant SEG_0   : std_logic_vector(7 downto 0) := "11000000";
+    constant SEG_1   : std_logic_vector(7 downto 0) := "11111001";
+    constant SEG_2   : std_logic_vector(7 downto 0) := "10100100";
+    constant SEG_3   : std_logic_vector(7 downto 0) := "10110000";
+    constant SEG_4   : std_logic_vector(7 downto 0) := "10011001";
+    constant SEG_5   : std_logic_vector(7 downto 0) := "10010010";
+    constant SEG_6   : std_logic_vector(7 downto 0) := "10000010";
+    constant SEG_7   : std_logic_vector(7 downto 0) := "11111000";
+    constant SEG_8   : std_logic_vector(7 downto 0) := "10000000";
+    constant SEG_9   : std_logic_vector(7 downto 0) := "10010000";
+    constant SEG_A   : std_logic_vector(7 downto 0) := "10001000";
+    constant SEG_B   : std_logic_vector(7 downto 0) := "10000011";
+    constant SEG_C   : std_logic_vector(7 downto 0) := "11000110";
+    constant SEG_D   : std_logic_vector(7 downto 0) := "10100001";
+    constant SEG_E   : std_logic_vector(7 downto 0) := "10000110";
+    constant SEG_F   : std_logic_vector(7 downto 0) := "10001110";
+    constant SEG_OFF : std_logic_vector(7 downto 0) := "11111111";
+
+    ----------------------------------------------------------------
+    -- Decodifica os segmentos de volta para um digito.
+    -- Serve apenas para o GTKWave mostrar 0, 4, F ... em vez de
+    -- padroes de oito bits.
+    ----------------------------------------------------------------
+    function seg_para_digito(
+        seg : std_logic_vector(7 downto 0)
+    ) return std_logic_vector is
+    begin
+        case seg is
+            when SEG_0 => return "0000";
+            when SEG_1 => return "0001";
+            when SEG_2 => return "0010";
+            when SEG_3 => return "0011";
+            when SEG_4 => return "0100";
+            when SEG_5 => return "0101";
+            when SEG_6 => return "0110";
+            when SEG_7 => return "0111";
+            when SEG_8 => return "1000";
+            when SEG_9 => return "1001";
+            when SEG_A => return "1010";
+            when SEG_B => return "1011";
+            when SEG_C => return "1100";
+            when SEG_D => return "1101";
+            when SEG_E => return "1110";
+            when SEG_F => return "1111";
+            when others => return "ZZZZ";   -- apagado
+        end case;
+    end function;
+
+begin
+
+    key <= key1 & key0;
+
+    ----------------------------------------------------------------
+    -- Device Under Test: o top-level da placa, sem alteracoes
+    ----------------------------------------------------------------
+    dut: entity work.fp_adder_de10
+        port map (
+            SW  => sw,
+            KEY => key,
+
+            HEX0 => hex0,
+            HEX1 => hex1,
+            HEX2 => hex2,
+            HEX3 => hex3,
+            HEX4 => hex4,
+            HEX5 => hex5
+        );
+
+    sw9_modo  <= sw(9);
+    sw8_reset <= sw(8);
+    sw_frac   <= sw(7 downto 0);
+    sw_sinal  <= sw(4);
+    sw_exp    <= sw(3 downto 0);
+
+    disp3 <= seg_para_digito(hex3);
+    disp2 <= seg_para_digito(hex2);
+    disp1 <= seg_para_digito(hex1);
+    disp0 <= seg_para_digito(hex0);
+
+
+    estimulos: process
+
+        ------------------------------------------------------------
+        -- Reset pela chave SW8
+        ------------------------------------------------------------
+        procedure resetar is
+        begin
+            fase  <= "0001";
+            sw(8) <= '1';
+            wait for 60 ns;
+            sw(8) <= '0';
+            wait for 40 ns;
+        end procedure;
+
+        ------------------------------------------------------------
+        -- Etapa 1 de um operando: carrega a fracao (SW9 = 0)
+        ------------------------------------------------------------
+        procedure carrega_fracao(
+            signal botao      : out std_logic;
+            constant fase_id  : in  std_logic_vector(3 downto 0);
+            constant frac_v   : in  std_logic_vector(7 downto 0)
+        ) is
+        begin
+            fase <= fase_id;
+
+            sw(9) <= '0';
+            sw(7 downto 0) <= frac_v;
+            wait for 40 ns;
+
+            botao <= '0';          -- pressiona
+            wait for 60 ns;        -- aqui o display mostra o PREVIEW
+            botao <= '1';          -- solta: rising_edge grava
+            wait for 40 ns;
+        end procedure;
+
+        ------------------------------------------------------------
+        -- Etapa 2 de um operando: carrega sinal e expoente (SW9 = 1)
+        ------------------------------------------------------------
+        procedure carrega_sinal_exp(
+            signal botao      : out std_logic;
+            constant fase_id  : in  std_logic_vector(3 downto 0);
+            constant sinal_v  : in  std_logic;
+            constant exp_v    : in  std_logic_vector(3 downto 0)
+        ) is
+        begin
+            fase <= fase_id;
+
+            sw(9) <= '1';
+            sw(4) <= sinal_v;
+            sw(3 downto 0) <= exp_v;
+            wait for 40 ns;
+
+            botao <= '0';
+            wait for 60 ns;
+            botao <= '1';
+            wait for 40 ns;
+        end procedure;
+
+        ------------------------------------------------------------
+        -- Verifica os quatro displays do resultado
+        ------------------------------------------------------------
+        procedure conferir(
+            constant nome : in string;
+            constant d3, d2, d1, d0 : in std_logic_vector(7 downto 0)
+        ) is
+        begin
+            fase <= "0110";
+            wait for 100 ns;
+
+            if (hex3 = d3 and hex2 = d2 and hex1 = d1 and hex0 = d0
+                and hex4 = SEG_OFF and hex5 = SEG_OFF) then
+                report "OK      -> " & nome severity note;
+            else
+                report "FALHOU  -> " & nome severity error;
+            end if;
+
+            wait for 60 ns;
+        end procedure;
+
+        ------------------------------------------------------------
+        -- Executa um caso completo, do reset ao resultado
+        ------------------------------------------------------------
+        procedure caso(
+            constant nome : in string;
+            constant id   : in integer;
+
+            constant s1v : in std_logic;
+            constant e1v : in std_logic_vector(3 downto 0);
+            constant f1v : in std_logic_vector(7 downto 0);
+
+            constant s2v : in std_logic;
+            constant e2v : in std_logic_vector(3 downto 0);
+            constant f2v : in std_logic_vector(7 downto 0);
+
+            constant d3, d2, d1, d0 : in std_logic_vector(7 downto 0)
+        ) is
+        begin
+            teste_id <= std_logic_vector(to_unsigned(id, 8));
+
+            resetar;
+
+            carrega_fracao   (key0, "0010", f1v);
+            carrega_sinal_exp(key0, "0011", s1v, e1v);
+
+            carrega_fracao   (key1, "0100", f2v);
+            carrega_sinal_exp(key1, "0101", s2v, e2v);
+
+            conferir(nome, d3, d2, d1, d0);
+        end procedure;
+
+    begin
+
+        ------------------------------------------------------------
+        -- T1 - normalizacao convencional (Caso 4)
+        -- 0,25 + 0,25 = 0,5   ->  0080
+        ------------------------------------------------------------
+        caso("T1  0,25 + 0,25 = 0,5   -> 0080", 1,
+             '0', "0000", "01000000",
+             '0', "0000", "01000000",
+             SEG_0, SEG_0, SEG_8, SEG_0);
+
+        ------------------------------------------------------------
+        -- T2 - normalizacao parcial (Caso 3)
+        -- 0,75 + (-0,5) = 0,25   ->  0040
+        ------------------------------------------------------------
+        caso("T2  0,75 + (-0,5) = 0,25   -> 0040", 2,
+             '0', "0000", "11000000",
+             '1', "0000", "10000000",
+             SEG_0, SEG_0, SEG_4, SEG_0);
+
+        ------------------------------------------------------------
+        -- T3 - shift_left limitado por big_exp (Caso 3)
+        -- 0,00100000 x 2^1 + 0 = 0,25   ->  0040
+        ------------------------------------------------------------
+        caso("T3  0,25 nao normalizado + 0   -> 0040", 3,
+             '0', "0001", "00100000",
+             '0', "0000", "00000000",
+             SEG_0, SEG_0, SEG_4, SEG_0);
+
+        ------------------------------------------------------------
+        -- T4 - cancelamento exato, zero canonico (Caso 1)
+        -- 1,5 + (-1,5) = 0   ->  0000
+        ------------------------------------------------------------
+        caso("T4  1,5 + (-1,5) = 0   -> 0000", 4,
+             '0', "0001", "11000000",
+             '1', "0001", "11000000",
+             SEG_0, SEG_0, SEG_0, SEG_0);
+
+        ------------------------------------------------------------
+        -- T5 - carry com incremento do expoente (Caso 2)
+        -- 16320 + 16320 = 32640   ->  0FFF
+        ------------------------------------------------------------
+        caso("T5  16320 + 16320 = 32640   -> 0FFF", 5,
+             '0', "1110", "11111111",
+             '0', "1110", "11111111",
+             SEG_0, SEG_F, SEG_F, SEG_F);
+
+        ------------------------------------------------------------
+        -- T6 - resultado negativo
+        -- 1,0 + (-1,5) = -0,5   ->  1080
+        ------------------------------------------------------------
+        caso("T6  1,0 + (-1,5) = -0,5   -> 1080", 6,
+             '0', "0001", "10000000",
+             '1', "0001", "11000000",
+             SEG_1, SEG_0, SEG_8, SEG_0);
+
+        ------------------------------------------------------------
+        -- T7 - truncamento do alinhamento (diff_exp >= 8)
+        -- 32000 + 100 = 32000   ->  0FFA
+        --
+        -- Este e o caso observado na placa: o operando 100 e
+        -- descartado no alinhamento, nao por overflow.
+        ------------------------------------------------------------
+        caso("T7  32000 + 100 = 32000   -> 0FFA  (truncamento)", 7,
+             '0', "1111", "11111010",
+             '0', "0111", "11001000",
+             SEG_0, SEG_F, SEG_F, SEG_A);
+
+        ------------------------------------------------------------
+        -- T8 - LIMITACAO: overflow do expoente
+        -- 32640 + 32640 deveria dar 65280   ->  00FF (errado)
+        ------------------------------------------------------------
+        caso("T8  32640 + 32640   -> 00FF  (LIMITACAO: overflow)", 8,
+             '0', "1111", "11111111",
+             '0', "1111", "11111111",
+             SEG_0, SEG_0, SEG_F, SEG_F);
+
+        ------------------------------------------------------------
+        -- T9 - demonstracao do PREVIEW
+        --
+        -- Carrega 1,5 em KEY0 e 0,5 em KEY1 e depois segura cada
+        -- botao para mostrar que o display exibe o operando
+        -- correspondente, e nao o resultado.
+        ------------------------------------------------------------
+        teste_id <= std_logic_vector(to_unsigned(9, 8));
+
+        resetar;
+
+        carrega_fracao   (key0, "0010", "11000000");
+        carrega_sinal_exp(key0, "0011", '0', "0001");
+
+        carrega_fracao   (key1, "0100", "10000000");
+        carrega_sinal_exp(key1, "0101", '0', "0000");
+
+        -- resultado: 1,5 + 0,5 = 2,0 -> 0 0010 10000000 -> 0280
+        fase <= "0110";
+        wait for 100 ns;
+
+        if (hex3 = SEG_0 and hex2 = SEG_2 and hex1 = SEG_8 and hex0 = SEG_0) then
+            report "OK      -> T9  1,5 + 0,5 = 2,0   -> 0280" severity note;
+        else
+            report "FALHOU  -> T9  1,5 + 0,5 = 2,0   -> 0280" severity error;
+        end if;
+
+        -- Segura KEY0: preview do operando 1 (1,5 -> 01C0)
+        --
+        -- ATENCAO: o preview sempre mostra o campo que esta NAS CHAVES
+        -- combinado com o campo ja armazenado. Como acabamos de usar
+        -- SW9 = 1 para o operando 2, e preciso voltar SW9 = 0 e colocar
+        -- a fracao do operando 1 nas chaves para ver 1,5 no preview.
+        fase <= "0111";
+        sw(9) <= '0';
+        sw(7 downto 0) <= "11000000";
+        wait for 40 ns;
+
+        key0 <= '0';
+        wait for 150 ns;
+
+        if (hex3 = SEG_0 and hex2 = SEG_1 and hex1 = SEG_C and hex0 = SEG_0) then
+            report "OK      -> T9  preview KEY0 = 1,5   -> 01C0" severity note;
+        else
+            report "FALHOU  -> T9  preview KEY0 = 1,5   -> 01C0" severity error;
+        end if;
+
+        key0 <= '1';
+        wait for 100 ns;
+
+        -- Segura KEY1: preview do operando 2 (0,5 -> 0080)
+        sw(9) <= '0';
+        sw(7 downto 0) <= "10000000";
+        wait for 40 ns;
+
+        key1 <= '0';
+        wait for 150 ns;
+
+        if (hex3 = SEG_0 and hex2 = SEG_0 and hex1 = SEG_8 and hex0 = SEG_0) then
+            report "OK      -> T9  preview KEY1 = 0,5   -> 0080" severity note;
+        else
+            report "FALHOU  -> T9  preview KEY1 = 0,5   -> 0080" severity error;
+        end if;
+
+        key1 <= '1';
+        fase  <= "0110";
+        wait for 150 ns;
+
+        report "=== tb_ondas_de10: 9 casos executados ===" severity note;
+        wait;
+
+    end process;
+
+end architecture;
+
 ```
 
 </details>
@@ -1230,6 +1842,6 @@ Documentadas explicitamente para deixar claro o escopo do formato simplificado:
 
 
 ## Video
-https://youtu.be/jicGraFZuXQ
-https://youtu.be/jicGraFZuXQ
+https://youtu.be/jicGraFZuXQ?si=7AitZBhIjwaKdCsw
+
 

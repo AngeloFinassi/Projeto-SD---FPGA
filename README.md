@@ -1242,6 +1242,18 @@ GEMINI - gefração da nossa calculadora para ajudar nos testes presencialmente,
 **Prompts Utilizados: Geração da calculadora (index.html, app.js e style.css)**
 onde foram, anexados arquivos do vhdl para contexto do funcionamento
 
+`
+quero fazer um frontend de uma pagina pra nos ajudar a testar isso pessoalmente, basicamente front end bonito porem sem framework, sem complicar nada, zero
+precisa ter o seguinte
+dois inputs de numero decimal, usuario coloca os numeros a serem somados
+e é apresentado as instrucoes pra colocar o numero 1 na placa (SW9 até SW0)
+o que deve aparecer nos displays depois de apertar key0
+as instrucoes para colocar o numero 2
+e oque deve aparecer apos apertar key1 (resultado da soma)
+o arquivo context.MD tem um resumo do que é o projeto, mas isso é um pouco antigo, o codigo foi alterado, o codigo final ta na pasta final, a mudanca que foi feita foi passar a usar 8 bits para fracao e nao 4
+faça o que te pedi e depois atualize o markdown por favor`
+
+
 **O Erro da IA (Alucinação):**
 
 > **1. Inconsistência na geração da documentação do projeto, para relatório final.** Mesmo com vhdl e testes funcionando a IA estava aluciando nas explicações e resumos para prrenchimento do mesmo, forçando revisão de cada linha, e reescrever diversas linhas.
@@ -1255,17 +1267,6 @@ onde foram, anexados arquivos do vhdl para contexto do funcionamento
 > **2. Correção do testbench, não do circuito.** No caso do *preview*, a correção foi ajustar o estímulo — voltar `SW9 = 0` e colocar a fração do operando 1 nas chaves antes de segurar o botão — e não alterar o hardware. Essa distinção só foi possível porque a simulação foi de fato executada: **o erro apareceu como `assertion error`, não como suspeita.** O núcleo `fp_adder_v2` não sofreu nenhuma modificação para acomodar os testes.
 
 > **3. Responsabilidade técnica.** Todo o código gerado com auxílio de IA foi lido, executado e validado pelo grupo antes de entrar no projeto. Os testbenches foram escritos para instanciar os módulos existentes sem alterá-los, justamente para que a evidência de simulação valesse para o mesmo código que foi sintetizado e gravado na placa.
-
-> `
-quero fazer um frontend de uma pagina pra nos ajudar a testar isso pessoalmente, basicamente front end bonito porem sem framework, sem complicar nada, zero
-precisa ter o seguinte
-dois inputs de numero decimal, usuario coloca os numeros a serem somados
-e é apresentado as instrucoes pra colocar o numero 1 na placa (SW9 até SW0)
-o que deve aparecer nos displays depois de apertar key0
-as instrucoes para colocar o numero 2
-e oque deve aparecer apos apertar key1 (resultado da soma)
-o arquivo context.MD tem um resumo do que é o projeto, mas isso é um pouco antigo, o codigo foi alterado, o codigo final ta na pasta final, a mudanca que foi feita foi passar a usar 8 bits para fracao e nao 4
-faça o que te pedi e depois atualize o markdown por favor`
 
 
 ---
